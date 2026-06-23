@@ -1,5 +1,7 @@
 package com.sp.block.custom;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -16,7 +18,11 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 @SuppressWarnings("deprecation")
 public class PoolTileWall extends HorizontalDirectionalBlock {
+    public static final MapCodec<PoolTileWall> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(propertiesCodec()).apply(instance, PoolTileWall::new));
     public static final IntegerProperty TYPE = IntegerProperty.create("type", 0, 1);
+
+    @Override
+    public MapCodec<PoolTileWall> codec() { return CODEC; }
 
     public PoolTileWall(Properties settings) {
         super(settings);

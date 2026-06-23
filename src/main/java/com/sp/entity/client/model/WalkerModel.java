@@ -4,7 +4,7 @@ import com.sp.SPBRevamped;
 import com.sp.entity.custom.WalkerEntity;
 import com.sp.entity.ik.model.GeckoLib.GeoModelAccessor;
 import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 /**
  * Original model base by ShadowZecro <br>
@@ -12,8 +12,8 @@ import software.bernie.geckolib.model.GeoModel;
  * Head reworked with the help of Jarton
  */
 public class WalkerModel extends GeoModel<WalkerEntity> {
-	private final ResourceLocation MODEL = new ResourceLocation(SPBRevamped.MOD_ID, "geo/entity/walker.geo.json");
-	private final ResourceLocation TEXTURES = new ResourceLocation(SPBRevamped.MOD_ID, "textures/entity/walker/walker.png");
+	private final ResourceLocation MODEL = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "geo/entity/walker.geo.json");
+	private final ResourceLocation TEXTURES = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "textures/entity/walker/walker.png");
 
 
 	@Override

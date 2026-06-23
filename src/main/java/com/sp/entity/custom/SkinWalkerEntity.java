@@ -14,7 +14,7 @@ import com.sp.init.ModSounds;
 import com.sp.sounds.entity.SkinWalkerChaseSoundInstance;
 import com.sp.world.levels.BackroomsLevelWithLights;
 import com.sp.world.levels.custom.Level0BackroomsLevel;
-import foundry.veil.api.client.util.Easings;
+import foundry.veil.api.client.util.Easing;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -36,12 +36,12 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.GeoAnimatable;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.Animation;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.animatable.GeoAnimatable;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.Animation;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
@@ -392,7 +392,7 @@ public class SkinWalkerEntity extends Monster implements GeoEntity, GeoAnimatabl
     @SuppressWarnings("InnerClassMayBeStatic")
     public class SkinWalkerLookControl extends LookControl{
         private int maxLookAtTimer = 5;
-        private final Easings.Easing easing = Easings.Easing.easeInOutCubic;
+        private final Easing easing = Easing.EASE_IN_OUT_CUBIC;
 
         public SkinWalkerLookControl(Mob entity) {
             super(entity);

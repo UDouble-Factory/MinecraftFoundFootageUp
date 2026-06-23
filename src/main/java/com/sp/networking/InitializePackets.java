@@ -4,33 +4,35 @@ import com.sp.SPBRevamped;
 import com.sp.networking.C2S.SeeActiveSkinwalkerSync;
 import com.sp.networking.C2S.SyncServerComponent;
 import com.sp.networking.C2S.TargetEntitySync;
+import com.sp.networking.C2S.TargetEntitySyncPayload;
 import com.sp.networking.S2C.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.resources.ResourceLocation;
 
 public class InitializePackets {
-    public static final ResourceLocation TARGET_ENTITY_SYNC = new ResourceLocation(SPBRevamped.MOD_ID, "targ_ent");
-    public static final ResourceLocation SEE_SKINWALKER_SYNC = new ResourceLocation(SPBRevamped.MOD_ID, "see_skin");
-    public static final ResourceLocation COMPONENT_SYNC = new ResourceLocation(SPBRevamped.MOD_ID, "comp_sync");
-
-    public static final ResourceLocation SCREEN_SHAKE = new ResourceLocation(SPBRevamped.MOD_ID, "scr_shake");
-    public static final ResourceLocation BLACK_SCREEN = new ResourceLocation(SPBRevamped.MOD_ID, "blk_screen");
-    public static final ResourceLocation RELOAD_LIGHTS = new ResourceLocation(SPBRevamped.MOD_ID, "rl_lights");
-    public static final ResourceLocation SOUND = new ResourceLocation(SPBRevamped.MOD_ID, "snd");
-    public static final ResourceLocation LEVEL_TRANSITION_LIGHTSOUT = new ResourceLocation(SPBRevamped.MOD_ID, "ltos");
+    public static final ResourceLocation SEE_SKINWALKER_SYNC = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "see_skin");
+    public static final ResourceLocation COMPONENT_SYNC = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "comp_sync");
 
     public static void registerC2SPackets() {
-        ServerPlayNetworking.registerGlobalReceiver(TARGET_ENTITY_SYNC, TargetEntitySync::receive);
+        PayloadTypeRegistry.playC2S().register(TargetEntitySyncPayload.TYPE, TargetEntitySyncPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(TargetEntitySyncPayload.TYPE, TargetEntitySync::receive);
         ServerPlayNetworking.registerGlobalReceiver(SEE_SKINWALKER_SYNC, SeeActiveSkinwalkerSync::receive);
         ServerPlayNetworking.registerGlobalReceiver(COMPONENT_SYNC, SyncServerComponent::receive);
     }
 
     public static void registerS2CPackets() {
-        ClientPlayNetworking.registerGlobalReceiver(SCREEN_SHAKE, InvokeScreenShakePacket::receive);
-        ClientPlayNetworking.registerGlobalReceiver(BLACK_SCREEN, InvokeBlackScreenPacket::receive);
-        ClientPlayNetworking.registerGlobalReceiver(RELOAD_LIGHTS, ReloadLightsPacket::receive);
-        ClientPlayNetworking.registerGlobalReceiver(SOUND, SoundPacket::receive);
-        ClientPlayNetworking.registerGlobalReceiver(LEVEL_TRANSITION_LIGHTSOUT, LevelTransitionLightsOut::receive);
+        PayloadTypeRegistry.playS2C().register(ScreenShakePayload.TYPE, ScreenShakePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(BlackScreenPayload.TYPE, BlackScreenPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ReloadLightsPayload.TYPE, ReloadLightsPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(SoundPayload.TYPE, SoundPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(LevelTransitionLightsOutPayload.TYPE, LevelTransitionLightsOutPayload.CODEC);
+
+        ClientPlayNetworking.registerGlobalReceiver(ScreenShakePayload.TYPE, InvokeScreenShakePacket::receive);
+        ClientPlayNetworking.registerGlobalReceiver(BlackScreenPayload.TYPE, InvokeBlackScreenPacket::receive);
+        ClientPlayNetworking.registerGlobalReceiver(ReloadLightsPayload.TYPE, ReloadLightsPacket::receive);
+        ClientPlayNetworking.registerGlobalReceiver(SoundPayload.TYPE, SoundPacket::receive);
+        ClientPlayNetworking.registerGlobalReceiver(LevelTransitionLightsOutPayload.TYPE, LevelTransitionLightsOut::receive);
     }
 }

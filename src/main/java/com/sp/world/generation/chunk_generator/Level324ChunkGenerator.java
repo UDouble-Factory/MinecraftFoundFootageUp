@@ -1,6 +1,6 @@
 package com.sp.world.generation.chunk_generator;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.sp.SPBRevamped;
 import com.sp.init.ModBlocks;
@@ -27,7 +27,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public class Level324ChunkGenerator extends BackroomsChunkGenerator {
-    public static final Codec<Level324ChunkGenerator> CODEC = RecordCodecBuilder.create(
+    public static final MapCodec<Level324ChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
                             BiomeSource.CODEC.fieldOf("biome_source").forGetter(generator -> generator.biomeSource),
                             NoiseGeneratorSettings.CODEC.fieldOf("settings").forGetter(generator -> generator.settings)
@@ -61,7 +61,7 @@ public class Level324ChunkGenerator extends BackroomsChunkGenerator {
                         StructurePlaceSettings structurePlacementData = new StructurePlaceSettings();
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE).setIgnoreEntities(true);
 
-                        Optional<StructureTemplate> optional = structureTemplateManager.get(new ResourceLocation(SPBRevamped.MOD_ID, "level324/hanging_lamp" + (random.nextIntBetweenInclusive(0, 5) == 0 ? "_on" : "_off")));
+                        Optional<StructureTemplate> optional = structureTemplateManager.get(ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level324/hanging_lamp" + (random.nextIntBetweenInclusive(0, 5) == 0 ? "_on" : "_off")));
 
                         optional.ifPresent(structureTemplate -> structureTemplate.placeInWorld(
                                 world,
@@ -76,7 +76,7 @@ public class Level324ChunkGenerator extends BackroomsChunkGenerator {
                             StructurePlaceSettings structurePlacementData = new StructurePlaceSettings();
                             structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE).setIgnoreEntities(true);
 
-                            Optional<StructureTemplate> optional = structureTemplateManager.get(new ResourceLocation(SPBRevamped.MOD_ID, "inf_grass/utility_pole"));
+                            Optional<StructureTemplate> optional = structureTemplateManager.get(ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "inf_grass/utility_pole"));
 
                             optional.ifPresent(structureTemplate -> structureTemplate.placeInWorld(
                                     world,
@@ -95,7 +95,7 @@ public class Level324ChunkGenerator extends BackroomsChunkGenerator {
                         StructurePlaceSettings structurePlacementData = new StructurePlaceSettings();
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE).setIgnoreEntities(true);
 
-                        Optional<StructureTemplate> optional = structureTemplateManager.get(new ResourceLocation(SPBRevamped.MOD_ID, "level324/gas_station"));
+                        Optional<StructureTemplate> optional = structureTemplateManager.get(ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level324/gas_station"));
 
                         optional.ifPresent(structureTemplate -> structureTemplate.placeInWorld(
                                 world,
@@ -162,7 +162,7 @@ public class Level324ChunkGenerator extends BackroomsChunkGenerator {
     }
 
     @Override
-    protected Codec<? extends ChunkGenerator> codec() {
+    protected MapCodec<? extends ChunkGenerator> codec() {
         return CODEC;
     }
 }

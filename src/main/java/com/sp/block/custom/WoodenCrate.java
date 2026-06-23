@@ -1,5 +1,7 @@
 package com.sp.block.custom;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.sp.block.entity.WoodenCrateBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
@@ -16,6 +18,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class WoodenCrate extends BaseEntityBlock {
+    public static final MapCodec<WoodenCrate> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(propertiesCodec()).apply(instance, WoodenCrate::new));
+
+    @Override
+    public MapCodec<WoodenCrate> codec() { return CODEC; }
+
     public WoodenCrate(Properties settings) {
         super(settings);
     }

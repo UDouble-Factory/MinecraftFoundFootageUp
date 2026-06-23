@@ -1,5 +1,7 @@
 package com.sp.block.custom.pipes;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -14,6 +16,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 @SuppressWarnings("deprecation")
 public class Pipe extends DirectionalBlock {
+    public static final MapCodec<Pipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(propertiesCodec()).apply(instance, Pipe::new));
+
+    @Override
+    public MapCodec<Pipe> codec() { return CODEC; }
 
     private static final VoxelShape SHAPE_EAST = Block.box(0.0, 2.0, 2.0, 16.0, 16.0, 14.0);
     private static final VoxelShape SHAPE_WEST = Block.box(0.0, 2.0, 2.0, 16.0, 16.0, 14.0);

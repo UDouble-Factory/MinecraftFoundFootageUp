@@ -1,5 +1,7 @@
 package com.sp.block.custom;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -17,8 +19,12 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 @SuppressWarnings("deprecation")
 public class BottomTrim extends HorizontalDirectionalBlock {
+    public static final MapCodec<BottomTrim> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(propertiesCodec()).apply(instance, BottomTrim::new));
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final IntegerProperty SIDES = IntegerProperty.create("sides", 1, 4);
+
+    @Override
+    public MapCodec<BottomTrim> codec() { return CODEC; }
 
     private static final VoxelShape SHAPE_SOUTH = Block.box(0.0, 3.0, 0.0, 16.0, 12.0, 1.0);
     private static final VoxelShape SHAPE_NORTH = Block.box(0.0, 3.0, 15.0, 16.0, 12.0, 16.0);

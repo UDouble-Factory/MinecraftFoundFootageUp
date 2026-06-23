@@ -4,7 +4,7 @@ import com.sp.SPBRevampedClient;
 import com.sp.compat.modmenu.ConfigStuff;
 import com.sp.util.TickTimer;
 import com.sp.util.Timer;
-import foundry.veil.api.client.util.Easings;
+import foundry.veil.api.client.util.Easing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
@@ -28,7 +28,7 @@ public class InGameHudMixin {
 
     @Shadow @Final private static ResourceLocation GUI_ICONS_LOCATION;
 
-    @Unique Timer hotbarSlideTimer = new Timer(500, Easings.Easing.easeInCirc, Easings.Easing.easeOutCirc);
+    @Unique Timer hotbarSlideTimer = new Timer(500, Easing.EASE_IN_CIRC, Easing.EASE_OUT_CIRC);
     @Unique TickTimer hotbarHoldTimer = new TickTimer();
     @Unique Integer prevSelectedSlot = 0;
     @Unique double hotbarPosition;

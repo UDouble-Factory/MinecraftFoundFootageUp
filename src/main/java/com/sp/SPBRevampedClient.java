@@ -35,12 +35,10 @@ import com.sp.world.levels.custom.PoolroomsBackroomsLevel;
 import de.maxhenkel.voicechat.voice.client.ClientManager;
 import foundry.veil.api.client.render.VeilRenderSystem;
 import foundry.veil.api.client.render.VeilRenderer;
-import foundry.veil.api.client.render.deferred.VeilDeferredRenderer;
-import foundry.veil.api.client.render.deferred.light.renderer.LightRenderer;
+import foundry.veil.api.client.render.light.renderer.LightRenderer;
 import foundry.veil.api.client.render.post.PostPipeline;
 import foundry.veil.api.client.render.post.PostProcessingManager;
-import foundry.veil.api.client.render.shader.definition.ShaderPreDefinitions;
-import foundry.veil.api.client.render.shader.program.MutableUniformAccess;
+import foundry.veil.api.client.render.shader.ShaderPreDefinitions;
 import foundry.veil.api.client.render.shader.program.ShaderProgram;
 import foundry.veil.api.event.VeilRenderLevelStageEvent.Stage;
 import foundry.veil.platform.VeilEventPlatform;
@@ -89,13 +87,13 @@ public class SPBRevampedClient implements ClientModInitializer {
     private static final CameraShake cameraShake = new CameraShake();
     private final FlashlightRenderer flashlightRenderer = new FlashlightRenderer();
 
-    private static final ResourceLocation VHS_POST = new ResourceLocation(SPBRevamped.MOD_ID, "vhs");
+    private static final ResourceLocation VHS_POST = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "vhs");
 
-    private static final ResourceLocation SSAO = new ResourceLocation(SPBRevamped.MOD_ID, "vhs/ssao");
-    private static final ResourceLocation EVERYTHING_SHADER = new ResourceLocation(SPBRevamped.MOD_ID, "vhs/everything");
-    private static final ResourceLocation POST_VHS = new ResourceLocation(SPBRevamped.MOD_ID, "vhs/vhs_post");
-    private static final ResourceLocation MIXED_SHADER = new ResourceLocation(SPBRevamped.MOD_ID, "vhs/mixed");
-    private static final ResourceLocation GLITCH_SHADER = new ResourceLocation(SPBRevamped.MOD_ID, "vhs/glitch");
+    private static final ResourceLocation SSAO = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "vhs/ssao");
+    private static final ResourceLocation EVERYTHING_SHADER = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "vhs/everything");
+    private static final ResourceLocation POST_VHS = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "vhs/vhs_post");
+    private static final ResourceLocation MIXED_SHADER = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "vhs/mixed");
+    private static final ResourceLocation GLITCH_SHADER = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "vhs/glitch");
 
     static boolean inBackrooms = false;
     public static boolean isLightning = false;
@@ -162,7 +160,7 @@ public class SPBRevampedClient implements ClientModInitializer {
         ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
             public ResourceLocation getFabricId() {
-                return new ResourceLocation(SPBRevamped.MOD_ID, "after_resources");
+                return ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "after_resources");
             }
 
             @Override
@@ -453,8 +451,7 @@ public class SPBRevampedClient implements ClientModInitializer {
         }));
 
         ClientPlayConnectionEvents.JOIN.register(((handler,sender, client) -> {
-            VeilDeferredRenderer renderer = VeilRenderSystem.renderer().getDeferredRenderer();
-            renderer.reset();
+            VeilRenderSystem.renderer().getLightRenderer().free();
 
             if (client.level != null) {
                 HelpfulHintManager.sendMessages(client.player);
@@ -544,26 +541,9 @@ public class SPBRevampedClient implements ClientModInitializer {
                 setInBackrooms(BackroomsLevels.isInBackrooms(playerClient.level().dimension()));
 
                 if (client.level != null) {
-                    VeilRenderer renderer = VeilRenderSystem.renderer();
-                    VeilDeferredRenderer deferredRenderer = renderer.getDeferredRenderer();
-                    LightRenderer lightRenderer = deferredRenderer.getLightRenderer();
-
-                    if (shouldRenderCameraEffect() && isInBackrooms()) {
-                        HelpfulHintManager.disableSuffocateHint();
-
-                        BackroomsLevel level = BackroomsLevels.getLevel(client.player.level()).orElse(BackroomsLevels.OVERWORLD_REPRESENTING_BACKROOMS_LEVEL);
-
-                        if (!level.hasVanillaLighting()) {
-                            lightRenderer.disableVanillaLight();
-                        } else {
-                            lightRenderer.enableVanillaLight();
-                        }
-
-                        lightRenderer.disableAmbientOcclusion();
-                    } else {
-                        lightRenderer.enableVanillaLight();
-                        lightRenderer.enableAmbientOcclusion();
-                    }
+                    // Note: VeilDeferredRenderer was removed in Veil 1.21.
+                    // disableVanillaLight / enableVanillaLight / disableAmbientOcclusion were also removed.
+                    // Lighting behavior is now controlled through shader pre-definitions or render pipeline config.
 
                     getCurrentBackroomsLevel().ifPresent((backroomsLevel -> {
                         if ((backroomsLevel instanceof InfiniteGrassBackroomsLevel/* || backroomsLevel instanceof Level324Backroomslevel*/) && ConfigStuff.birdQuality != BirdQuality.DISABLED) {
@@ -576,15 +556,18 @@ public class SPBRevampedClient implements ClientModInitializer {
 
     }
 
-    public static void setShadowUniforms(MutableUniformAccess access, Level world) {
+    public static void setShadowUniforms(ShaderProgram access, Level world) {
         Matrix4f level0ViewMat = ShadowMapRenderer.createShadowModelView(camera.getPosition().x, camera.getPosition().y, camera.getPosition().z, true).last().pose();
         Matrix4f viewMat = ShadowMapRenderer.createShadowModelView(camera.getPosition().x, camera.getPosition().y, camera.getPosition().z, world, true).last().pose();
 
-        access.setMatrix("level0ViewMatrix", level0ViewMat);
-        access.setMatrix("viewMatrix", viewMat);
-        access.setMatrix("IShadowViewMatrix", viewMat.invert());
-
-        access.setMatrix("orthographMatrix", ShadowMapRenderer.createProjMat());
+        var u0 = access.getUniform("level0ViewMatrix");
+        if (u0 != null) u0.setMatrix(level0ViewMat);
+        var u1 = access.getUniform("viewMatrix");
+        if (u1 != null) u1.setMatrix(viewMat);
+        var u2 = access.getUniform("IShadowViewMatrix");
+        if (u2 != null) u2.setMatrix(viewMat.invert(new Matrix4f()));
+        var u3 = access.getUniform("orthographMatrix");
+        if (u3 != null) u3.setMatrix(ShadowMapRenderer.createProjMat());
     }
 
     public static float getWarpTimer(Level world) {

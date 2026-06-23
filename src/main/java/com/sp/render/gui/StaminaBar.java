@@ -14,7 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import static net.minecraft.util.Mth.floor;
 
 public class StaminaBar implements HudRenderCallback {
-    private static final ResourceLocation STAMINA_ICONS = new ResourceLocation(SPBRevamped.MOD_ID, "textures/gui/stamina.png");
+    private static final ResourceLocation STAMINA_ICONS = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "textures/gui/stamina.png");
     private Long fadeStart;
     private float fadeTimer;
 

@@ -1,5 +1,7 @@
 package com.sp.block.custom;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -17,7 +19,11 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class NewStairs extends HorizontalDirectionalBlock {
+    public static final MapCodec<NewStairs> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(propertiesCodec()).apply(instance, NewStairs::new));
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+
+    @Override
+    public MapCodec<NewStairs> codec() { return CODEC; }
 
 
     private static final VoxelShape SHAPE_SOUTH = Shapes.or(

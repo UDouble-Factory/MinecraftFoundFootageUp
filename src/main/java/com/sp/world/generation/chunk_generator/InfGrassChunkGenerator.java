@@ -1,6 +1,6 @@
 package com.sp.world.generation.chunk_generator;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.sp.SPBRevamped;
 import com.sp.init.ModBlocks;
@@ -39,7 +39,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public final class InfGrassChunkGenerator extends BackroomsChunkGenerator {
-    public static final Codec<InfGrassChunkGenerator> CODEC = RecordCodecBuilder.create(
+    public static final MapCodec<InfGrassChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
                             BiomeSource.CODEC.fieldOf("biome_source").forGetter(generator -> generator.biomeSource),
                             NoiseGeneratorSettings.CODEC.fieldOf("settings").forGetter(generator -> generator.settings)
@@ -73,7 +73,7 @@ public final class InfGrassChunkGenerator extends BackroomsChunkGenerator {
         float sampler = SimplexNoise.noise(x, 0);
         if (sampler >= 0.6) {
             if (server != null) {
-                roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, "inf_grass/utility_pole");
+                roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "inf_grass/utility_pole");
 
                 optional = structureTemplateManager.get(roomIdentifier);
 
@@ -118,7 +118,7 @@ public final class InfGrassChunkGenerator extends BackroomsChunkGenerator {
     }
 
 
-    protected Codec<? extends ChunkGenerator> codec() {
+    protected MapCodec<? extends ChunkGenerator> codec() {
         return CODEC;
     }
 

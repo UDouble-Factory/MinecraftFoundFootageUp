@@ -6,12 +6,8 @@ import com.sp.cca_stuff.PlayerComponent;
 import com.sp.compat.modmenu.ConfigStuff;
 import com.sp.init.BackroomsLevels;
 import com.sp.init.ModSounds;
-import com.sp.mixin.cutscene.PathAccessor;
 import com.sp.util.MathStuff;
-import foundry.veil.api.client.anim.Frame;
-import foundry.veil.api.client.anim.Keyframe;
-import foundry.veil.api.client.anim.Path;
-import foundry.veil.api.client.util.Easings;
+import foundry.veil.api.client.util.Easing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.util.Mth;
@@ -19,8 +15,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-
-import java.util.List;
 
 /**
  * Will likely use in a future API if I ever feel like making it
@@ -37,14 +31,16 @@ public class CutsceneManager {
     private final int duration2;
     public BlackScreen blackScreen;
     private Entity camera;
-    private final Path cameraPathPos;
-    private final Path cameraPathRotX;
-    private final Path cameraPathRotY;
-    private final Path cameraPathRotZ;
     public float cameraRotZ;
     private final Minecraft client;
 
-    public CutsceneManager(){
+    // Keyframe data inlined — replaces Veil anim Path/Frame/Keyframe which was removed in 1.21
+    // POS path: (0.5, 220, 0.5) → (0.5, 27, 0.5) over duration
+    // ROT_X:    80° → 60° (first half), 60° → 110° (second half)
+    // ROT_Y:    0°  → 120° over duration
+    // ROT_Z:    0°→20°→-20°→0° split thirds
+
+    public CutsceneManager() {
         this.started = false;
         this.isPlaying = false;
         this.fall = false;
@@ -55,31 +51,12 @@ public class CutsceneManager {
         this.blackScreen = new BlackScreen();
         this.client = Minecraft.getInstance();
         this.cameraRotZ = 0;
-        this.cameraPathPos = new Path(List.of(
-                new Keyframe(new Vec3(0.5,220,0.5), Vec3.ZERO, Vec3.ZERO, MathStuff.millisecToTick(this.duration), Easings.Easing.easeInSine),
-                new Keyframe(new Vec3(0.5,27,0.5), Vec3.ZERO, Vec3.ZERO,0, Easings.Easing.linear)
-        ), false, false);
-        this.cameraPathRotX = new Path(List.of(
-                new Keyframe(Vec3.ZERO, new Vec3(80,0,0), Vec3.ZERO,MathStuff.millisecToTick(this.duration) / 2, Easings.Easing.easeInOutSine),
-                new Keyframe(Vec3.ZERO, new Vec3(60,0,0), Vec3.ZERO,MathStuff.millisecToTick(this.duration) / 2, Easings.Easing.easeInOutSine),
-                new Keyframe(Vec3.ZERO, new Vec3(110,0,0), Vec3.ZERO,0, Easings.Easing.easeInOutSine)
-        ), false, false);
-        this.cameraPathRotY = new Path(List.of(
-                new Keyframe(Vec3.ZERO, new Vec3(0,0,0), Vec3.ZERO, MathStuff.millisecToTick(this.duration), Easings.Easing.linear),
-                new Keyframe(Vec3.ZERO, new Vec3(0,120,0), Vec3.ZERO,0, Easings.Easing.linear)
-        ), false, false);
-        this.cameraPathRotZ = new Path(List.of(
-                new Keyframe(Vec3.ZERO, new Vec3(0,0,20), Vec3.ZERO, MathStuff.millisecToTick(this.duration) / 2, Easings.Easing.easeInOutSine),
-                new Keyframe(Vec3.ZERO, new Vec3(0,0,-20), Vec3.ZERO,MathStuff.millisecToTick(this.duration) / 2, Easings.Easing.easeInOutSine),
-                new Keyframe(Vec3.ZERO, new Vec3(0,0,0), Vec3.ZERO,0, Easings.Easing.easeInOutSine)
-        ), false, false);
     }
 
-
-    public void tick(){
-        if(client.player != null && client.level != null) {
+    public void tick() {
+        if (client.player != null && client.level != null) {
             PlayerComponent playerComponent = InitializeComponents.PLAYER.get(client.player);
-            if(playerComponent.isDoingCutscene() && client.level.dimension() == BackroomsLevels.LEVEL0_WORLD_KEY){
+            if (playerComponent.isDoingCutscene() && client.level.dimension() == BackroomsLevels.LEVEL0_WORLD_KEY) {
                 this.pause();
                 this.Fall();
                 this.BackroomsBySP();
@@ -90,8 +67,8 @@ public class CutsceneManager {
         }
     }
 
-    private void pause(){
-        if(!this.backroomsBySP && !this.fall) {
+    private void pause() {
+        if (!this.backroomsBySP && !this.fall) {
             if (!this.started) {
                 this.blackScreen.showBlackScreen(60, true, false);
                 this.startTime = System.currentTimeMillis();
@@ -106,13 +83,12 @@ public class CutsceneManager {
     }
 
     private void Fall() {
-        if(!this.backroomsBySP && this.fall) {
+        if (!this.backroomsBySP && this.fall) {
             if (!this.isPlaying) {
                 this.prevLightRenderDistance = ConfigStuff.lightRenderDistance;
                 ConfigStuff.lightRenderDistance = 1000;
                 this.startTime = System.currentTimeMillis();
                 this.isPlaying = true;
-//                SPBRevampedClient.getCameraShake().setCameraShake(MathStuff.millisecToTick(this.duration), 1, Easings.Easing.linear, true);
                 client.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.FALLING, 1.0f));
             }
             float timer = (float) (System.currentTimeMillis() - this.startTime) / this.duration;
@@ -138,11 +114,11 @@ public class CutsceneManager {
         }
     }
 
-    private void BackroomsBySP(){
-        if(this.backroomsBySP) {
+    private void BackroomsBySP() {
+        if (this.backroomsBySP) {
             float timer = (float) (System.currentTimeMillis() - this.startTime) / this.duration2;
 
-            if(timer >= 1.0){
+            if (timer >= 1.0) {
                 this.blackScreen.showBlackScreen(40, true, false);
                 this.reset();
             } else {
@@ -154,46 +130,51 @@ public class CutsceneManager {
         }
     }
 
-    private Vec3 lerpedCameraRot(float timer){
+    // Replaces Veil Path/Frame interpolation — simple piecewise lerp with easing
+    private Vec3 lerpedCameraRot(float timer) {
+        // ROT_X: 80 → 60 (first half), 60 → 110 (second half)
+        double rotX;
+        if (timer < 0.5f) {
+            float t = Easing.EASE_IN_OUT_SINE.ease(timer * 2f);
+            rotX = Mth.lerp(t, 80.0, 60.0);
+        } else {
+            float t = Easing.EASE_IN_OUT_SINE.ease((timer - 0.5f) * 2f);
+            rotX = Mth.lerp(t, 60.0, 110.0);
+        }
 
-        double interpolateX = MathStuff.mod(timer * ((PathAccessor) cameraPathRotX).getFrames().size(), 1);
-        double currentFrameRotX = cameraPathRotX.frameAtProgress(timer).getRotation().x;
-        double prevFrameRotX = previousFrameAtProgress(cameraPathRotX, timer).getRotation().x;
+        // ROT_Y: 0 → 120 linear
+        double rotY = Mth.lerp((double) timer, 0.0, 120.0);
 
-        double interpolateY = MathStuff.mod(timer * ((PathAccessor) cameraPathRotY).getFrames().size(), 1);
-        double currentFrameRotY = cameraPathRotY.frameAtProgress(timer).getRotation().y;
-        double prevFrameRotY = previousFrameAtProgress(cameraPathRotY, timer).getRotation().y;
+        // ROT_Z: 0→20 (0–1/3), 20→-20 (1/3–2/3), -20→0 (2/3–1)
+        double rotZ;
+        if (timer < 1f / 3f) {
+            float t = Easing.EASE_IN_OUT_SINE.ease(timer * 3f);
+            rotZ = Mth.lerp(t, 0.0, 20.0);
+        } else if (timer < 2f / 3f) {
+            float t = Easing.EASE_IN_OUT_SINE.ease((timer - 1f / 3f) * 3f);
+            rotZ = Mth.lerp(t, 20.0, -20.0);
+        } else {
+            float t = Easing.EASE_IN_OUT_SINE.ease((timer - 2f / 3f) * 3f);
+            rotZ = Mth.lerp(t, -20.0, 0.0);
+        }
 
-        double interpolateZ = MathStuff.mod(timer * ((PathAccessor) cameraPathRotZ).getFrames().size(), 1);
-        double currentFrameRotZ = cameraPathRotZ.frameAtProgress(timer).getRotation().z;
-        double prevFrameRotZ = previousFrameAtProgress(cameraPathRotZ, timer).getRotation().z;
-
-        return new Vec3(
-                Mth.lerp(interpolateX, prevFrameRotX, currentFrameRotX),
-                Mth.lerp(interpolateY, prevFrameRotY, currentFrameRotY),
-                Mth.lerp(interpolateZ, prevFrameRotZ, currentFrameRotZ)
-        );
+        return new Vec3(rotX, rotY, rotZ);
     }
 
-    private Vec3 lerpedCameraPos(float timer){
-        double interpolatePos = MathStuff.mod(timer * ((PathAccessor) cameraPathPos).getFrames().size(), 1);
-        Vec3 currentFramePos = cameraPathPos.frameAtProgress(timer).getPosition();
-        Vec3 prevFramePos = previousFrameAtProgress(cameraPathPos, timer).getPosition();
-
-        return new Vec3(
-                Mth.lerp(interpolatePos, prevFramePos.x, currentFramePos.x),
-                Mth.lerp(interpolatePos, prevFramePos.y, currentFramePos.y),
-                Mth.lerp(interpolatePos, prevFramePos.z, currentFramePos.z)
-        );
+    private Vec3 lerpedCameraPos(float timer) {
+        // POS: (0.5, 220, 0.5) → (0.5, 27, 0.5) using easeInSine
+        float t = Easing.EASE_IN_SINE.ease(timer);
+        double y = Mth.lerp(t, 220.0, 27.0);
+        return new Vec3(0.5, y, 0.5);
     }
 
-    public void reset(){
+    public void reset() {
         PlayerComponent playerComponent = InitializeComponents.PLAYER.get(client.player);
         this.isPlaying = false;
         this.started = false;
         this.fall = false;
         this.backroomsBySP = false;
-        if(this.camera != null) {
+        if (this.camera != null) {
             this.camera.remove(Entity.RemovalReason.DISCARDED);
             this.camera = null;
         }
@@ -203,40 +184,28 @@ public class CutsceneManager {
         playerComponent.setDoingCutscene(false);
 
         SPBRevampedClient.sendComponentSyncPacket(playerComponent.isDoingCutscene(), "cutscene");
-
     }
 
-    private void initCamera(){
+    private void initCamera() {
         this.camera = new ItemEntity(client.level, 1.5, 300, 1.5, ItemStack.EMPTY);
         this.camera.moveTo(1.5, 300, 1.5, 0, 90);
     }
 
-    private Frame previousFrameAtProgress(Path path, double progress){
-        List<Frame> frames = ((PathAccessor) path).getFrames();
-        int index = (int) (frames.size() * progress) - 1;
-        if(index < 0){
-            return frames.get(0);
-        }
-        return frames.get(index);
-    }
 
-
-
-    public class BlackScreen{
+    public class BlackScreen {
         public boolean isBlackScreen;
         public boolean noEscape;
         private long duration;
         private long startTime;
         private boolean shouldPauseSounds;
 
-        //Duration in ticks
-        public BlackScreen(){
+        public BlackScreen() {
             this.startTime = 0L;
             this.isBlackScreen = false;
             this.duration = 0;
         }
 
-        public void showBlackScreen(int time, boolean shouldPauseSounds, boolean noEscape){
+        public void showBlackScreen(int time, boolean shouldPauseSounds, boolean noEscape) {
             this.duration = time * 50L;
             this.isBlackScreen = true;
             this.noEscape = noEscape;
@@ -245,9 +214,8 @@ public class CutsceneManager {
             client.options.hideGui = true;
         }
 
-        //Tick
-        public void tick(){
-            if(isBlackScreen){
+        public void tick() {
+            if (isBlackScreen) {
                 Minecraft client = Minecraft.getInstance();
                 float timer = (float) (System.currentTimeMillis() - this.startTime) / this.duration;
 
@@ -259,10 +227,10 @@ public class CutsceneManager {
                     this.startTime = 0;
                     client.getSoundManager().resume();
                 } else {
-                    if(shouldPauseSounds) {
+                    if (shouldPauseSounds) {
                         client.getSoundManager().pause();
                     }
-                    if(noEscape){
+                    if (noEscape) {
                         SPBRevampedClient.youCantEscape = true;
                     }
                     client.options.hideGui = true;
@@ -270,7 +238,5 @@ public class CutsceneManager {
                 }
             }
         }
-
     }
-
 }

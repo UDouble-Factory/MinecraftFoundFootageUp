@@ -4,7 +4,7 @@ import com.sp.cca_stuff.InitializeComponents;
 import com.sp.cca_stuff.SkinWalkerComponent;
 import com.sp.entity.custom.SkinWalkerEntity;
 import com.sp.init.ModSounds;
-import foundry.veil.api.client.util.Easings;
+import foundry.veil.api.client.util.Easing;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.sounds.SoundSource;
@@ -50,7 +50,7 @@ public class SkinWalkerChaseSoundInstance extends AbstractTickableSoundInstance 
 
         if(this.beginFade){
             this.ticksToFade--;
-            this.volume = 10 * Easings.Easing.easeInSine.ease((float) this.ticksToFade/80);
+            this.volume = 10 * Easing.EASE_IN_SINE.ease((float) this.ticksToFade/80);
 
             if(ticksToFade <= 0) {
                 this.stop();

@@ -6,7 +6,7 @@ import com.sp.cca_stuff.PlayerComponent;
 import com.sp.util.Timer;
 import foundry.veil.api.client.render.VeilRenderSystem;
 import foundry.veil.api.client.render.shader.program.ShaderProgram;
-import foundry.veil.api.client.util.Easings;
+import foundry.veil.api.client.util.Easing;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -51,7 +51,7 @@ public abstract class LivingEntityRendererMixin <T extends LivingEntity, M exten
 
             if(playerComponent.isShouldDoStatic()) {
                 if (this.staticTimer == null) {
-                    this.staticTimer = new Timer(2000, Easings.Easing.linear);
+                    this.staticTimer = new Timer(2000, Easing.LINEAR);
                     this.staticTimer.startTimer();
                 }
 

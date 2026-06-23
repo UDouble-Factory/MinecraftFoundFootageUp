@@ -1,6 +1,6 @@
 package com.sp.util;
 
-import foundry.veil.api.client.util.Easings;
+import foundry.veil.api.client.util.Easing;
 import net.minecraft.util.Mth;
 
 
@@ -10,18 +10,18 @@ public class Timer {
     private long startTime;
     private long duration;
     private float currentTime = 0.0f;
-    private final Easings.Easing easingIn;
-    private final Easings.Easing easingOut;
+    private final Easing easingIn;
+    private final Easing easingOut;
     private boolean done;
 
 
-    public Timer(long duration, Easings.Easing easing){
+    public Timer(long duration, Easing easing){
         this.duration = duration;
         this.easingIn = easing;
         this.easingOut = easing;
     }
 
-    public Timer(long duration, Easings.Easing easeIn, Easings.Easing easeOut){
+    public Timer(long duration, Easing easeIn, Easing easeOut){
         this.duration = duration;
         this.easingIn = easeIn;
         this.easingOut = easeOut;

@@ -4,7 +4,7 @@ import com.sp.entity.ik.model.BoneAccessor;
 import com.sp.entity.ik.model.ModelAccessor;
 import com.sp.entity.ik.util.PrAnCommonClass;
 import software.bernie.geckolib.cache.object.GeoBone;
-import software.bernie.geckolib.core.animatable.GeoAnimatable;
+import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.model.GeoModel;
 
 import java.util.Optional;

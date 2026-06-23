@@ -32,10 +32,10 @@ public abstract class GameRendererMixin {
     @Unique
     Entity newCamera;
     @Unique
-    private static final ResourceLocation shadowSolid = new ResourceLocation(SPBRevamped.MOD_ID, "shadowmap/rendertype_solid");
+    private static final ResourceLocation shadowSolid = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "shadowmap/rendertype_solid");
 
     @Unique
-    private static final ResourceLocation shadowEntity = new ResourceLocation(SPBRevamped.MOD_ID, "shadowmap/rendertype_entity");
+    private static final ResourceLocation shadowEntity = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "shadowmap/rendertype_entity");
 
     @Unique
     private static final ResourceLocation warpEntity = new ResourceLocation("spbrevamped", "warp_player");

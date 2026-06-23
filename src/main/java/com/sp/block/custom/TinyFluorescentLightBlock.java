@@ -1,5 +1,7 @@
 package com.sp.block.custom;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.sp.block.entity.TinyFluorescentLightBlockEntity;
 import com.sp.init.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -21,9 +23,13 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("deprecation")
 public class TinyFluorescentLightBlock extends BaseEntityBlock {
+    public static final MapCodec<TinyFluorescentLightBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(propertiesCodec()).apply(instance, TinyFluorescentLightBlock::new));
     public static final BooleanProperty ON = BooleanProperty.create("on");
     public static final BooleanProperty COPY = BooleanProperty.create("copy");
     public static final BooleanProperty BLACKOUT = BooleanProperty.create("blackout");
+
+    @Override
+    public MapCodec<TinyFluorescentLightBlock> codec() { return CODEC; }
 
     private static final VoxelShape FLOOR_X_AXIS_SHAPE = Block.box(6.0, 14.0, 6.0, 10.0, 16.0, 10.0);
 

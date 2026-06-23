@@ -4,13 +4,13 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.sp.init.BackroomsLevels;
 import com.sp.world.levels.BackroomsLevel;
-import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.portal.PortalInfo;
+import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Optional;
@@ -36,10 +36,10 @@ public class LevelCommand {
 
                                 Entity entity = context.getSource().getEntityOrException();
 
-                                if (entity instanceof Player player) {
-
-                                    PortalInfo target = new PortalInfo(backroomsLevel.getSpawnPos(), Vec3.ZERO, 0, 90);
-                                    FabricDimensions.teleport(player, context.getSource().getLevel().getServer().getLevel(backroomsLevel.getWorldKey()), target);
+                                if (entity instanceof ServerPlayer player) {
+                                    ServerLevel destination = context.getSource().getLevel().getServer().getLevel(backroomsLevel.getWorldKey());
+                                    DimensionTransition target = new DimensionTransition(destination, backroomsLevel.getSpawnPos(), Vec3.ZERO, 0, 90, DimensionTransition.DO_NOTHING);
+                                    player.changeDimension(target);
                                 }
 
 

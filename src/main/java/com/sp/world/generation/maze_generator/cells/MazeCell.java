@@ -77,77 +77,77 @@ public class MazeCell {
                 switch (this.doors) {
                     //NO DOORS
                     case 0 -> { // 0000
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE);
                     }
 
                     //ONE DOOR
                     case 8 -> { // 1000
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_1door_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_1door_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE);
                     }
                     case 4 -> { // 0100
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_1door_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_1door_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.COUNTERCLOCKWISE_90);
                     }
                     case 2 -> { // 0010
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_1door_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_1door_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_180);
                     }
                     case 1 -> { // 0001
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_1door_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_1door_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_90);
                     }
 
                     //CORNER DOORS
                     case 9 -> { // 1001
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_cornerdoor_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_cornerdoor_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE);
                     }
                     case 3 -> { // 0011
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_cornerdoor_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_cornerdoor_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_90);
                     }
                     case 6 -> { // 0110
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_cornerdoor_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_cornerdoor_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_180);
                     }
                     case 12 -> { // 1100
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_cornerdoor_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_cornerdoor_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.COUNTERCLOCKWISE_90);
                     }
 
                     //HALLWAY DOORS
                     case 10 -> { // 1010
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_halldoor_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_halldoor_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE);
                     }
                     case 5 -> { // 0101
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_halldoor_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_halldoor_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_90);
                     }
 
                     //CORNER DOORS
                     case 13 -> { // 1101
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_3door_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_3door_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE);
                     }
                     case 11 -> { // 1011
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_3door_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_3door_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_90);
                     }
                     case 7 -> { // 0111
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_3door_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_3door_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_180);
                     }
                     case 14 -> { // 1110
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_3door_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_3door_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.COUNTERCLOCKWISE_90);
                     }
 
                     //ALL FOUR DOORS
                     default-> { // 1111
-                        roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_4door_" + aroomNumber);
+                        roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_4door_" + aroomNumber);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE);
                     }
                 }
@@ -234,7 +234,7 @@ public class MazeCell {
             }
 
             default -> // Shouldn't be possible, but just in case
-                    roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_" + aroomNumber);
+                    roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_" + aroomNumber);
         }
 
         optional = structureTemplateManager.get(roomId);
@@ -298,82 +298,82 @@ public class MazeCell {
         int eroomNumber = random.nextIntBetweenInclusive(1, roomCount.eRoomCount());
         switch (this.walls) {
             case 0 -> { // 0000   ╬
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_" + aroomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_" + aroomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE);
             }
 
             case 8 -> { // 1000   ╦
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/broom_" + broomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/broom_" + broomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_180);
             }
 
             case 4 -> { // 0100   ╠
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/broom_" + broomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/broom_" + broomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_90);
             }
 
             case 2 -> { // 0010   ╩
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/broom_" + broomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/broom_" + broomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE);
             }
 
             case 1 -> { // 0001   ╣
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/broom_" + broomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/broom_" + broomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.COUNTERCLOCKWISE_90);
             }
 
             case 12 -> { // 1100   ╔
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/croom_" + croomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/croom_" + croomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_90);
             }
 
             case 10 -> { // 1010   ═
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/droom_" + droomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/droom_" + droomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_90);
             }
 
             case 9 -> { // 1001   ╗
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/croom_" + croomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/croom_" + croomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_180);
             }
 
             case 6 -> { // 0110   ╚
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/croom_" + croomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/croom_" + croomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE);
             }
 
             case 5 -> { // 0101   ║
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/droom_" + droomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/droom_" + droomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE);
             }
 
             case 3 -> { // 0011   ╝
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/croom_" + croomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/croom_" + croomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.COUNTERCLOCKWISE_90);
             }
 
             case 14 -> { // 1110   ╞
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/eroom_" + eroomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/eroom_" + eroomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_90);
             }
 
             case 7 -> { // 0111   ╨
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/eroom_" + eroomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/eroom_" + eroomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE);
             }
 
             case 11 -> { // 1011   ╡
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/eroom_" + eroomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/eroom_" + eroomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.COUNTERCLOCKWISE_90);
             }
 
             case 13 -> { // 1101   ╥
-                roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/eroom_" + eroomNumber);
+                roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/eroom_" + eroomNumber);
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.CLOCKWISE_180);
             }
 
             default -> // Shouldn't be possible, but just in case
-                    roomId = new ResourceLocation(SPBRevamped.MOD_ID, levelId + "/aroom_" + aroomNumber);
+                    roomId = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelId + "/aroom_" + aroomNumber);
         }
 
         optional = structureTemplateManager.get(roomId);
@@ -411,29 +411,29 @@ public class MazeCell {
         return switch (this.doors) {
             //NO DOORS
             case 0 -> // 0000
-                new ResourceLocation(SPBRevamped.MOD_ID, level + "/broom_" + broomNumber);
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/broom_" + broomNumber);
 
             //ONE DOOR
             case 1 -> // 0001
-                new ResourceLocation(SPBRevamped.MOD_ID, level + "/broom_1door_east_" + broomNumber);
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/broom_1door_east_" + broomNumber);
             case 4 -> // 0100
-                new ResourceLocation(SPBRevamped.MOD_ID, level + "/broom_1door_west_" + broomNumber);
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/broom_1door_west_" + broomNumber);
             case 8 -> // 1000
-                new ResourceLocation(SPBRevamped.MOD_ID, level + "/broom_1door_north_" + broomNumber);
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/broom_1door_north_" + broomNumber);
 
             //CORNER DOORS
             case 9 -> // 1001
-                new ResourceLocation(SPBRevamped.MOD_ID, level + "/broom_2door_1_" + broomNumber);
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/broom_2door_1_" + broomNumber);
             case 12 -> // 1100
-                new ResourceLocation(SPBRevamped.MOD_ID, level + "/broom_2door_2_" + broomNumber);
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/broom_2door_2_" + broomNumber);
 
             //HALLWAY DOORS
             case 5 -> // 0101
-                new ResourceLocation(SPBRevamped.MOD_ID, level + "/broom_2door_" + broomNumber);
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/broom_2door_" + broomNumber);
 
             //ALL THREE DOORS
             default -> // 1101
-                new ResourceLocation(SPBRevamped.MOD_ID, level + "/broom_3door_" + broomNumber);
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/broom_3door_" + broomNumber);
         };
     }
 
@@ -441,17 +441,17 @@ public class MazeCell {
         return switch (this.doors) {
             //NO DOORS
             case 0 -> // 0000
-                new ResourceLocation(SPBRevamped.MOD_ID, level + "/croom_" + croomNumber);
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/croom_" + croomNumber);
 
             //ONE DOOR
             case 1 -> // 0001
-                new ResourceLocation(SPBRevamped.MOD_ID, level + "/croom_1door_1_" + croomNumber);
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/croom_1door_1_" + croomNumber);
             case 8 -> // 1000
-                    new ResourceLocation(SPBRevamped.MOD_ID, level + "/croom_1door_2_" + croomNumber);
+                    ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/croom_1door_2_" + croomNumber);
 
             //BOTH DOORS
             default -> // 1001
-                    new ResourceLocation(SPBRevamped.MOD_ID, level + "/croom_2door_" + croomNumber);
+                    ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/croom_2door_" + croomNumber);
         };
     }
 
@@ -459,26 +459,26 @@ public class MazeCell {
         return switch (this.doors) {
             //NO DOORS
             case 0 -> // 0000
-                new ResourceLocation(SPBRevamped.MOD_ID, level + "/droom_" + droomNumber);
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/droom_" + droomNumber);
 
             //ONE DOOR
             case 2 -> // 0010
-                new ResourceLocation(SPBRevamped.MOD_ID, level + "/droom_1door_1_" + droomNumber);
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/droom_1door_1_" + droomNumber);
             case 8 -> // 1000
-                    new ResourceLocation(SPBRevamped.MOD_ID, level + "/droom_1door_2_" + droomNumber);
+                    ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/droom_1door_2_" + droomNumber);
 
             //BOTH DOORS
             default -> // 1010
-                    new ResourceLocation(SPBRevamped.MOD_ID, level + "/droom_2door_" + droomNumber);
+                    ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/droom_2door_" + droomNumber);
         };
     }
 
     private ResourceLocation singleDoor(String level, int eroomNumber) {
         if(this.doors == 8){
-            return new ResourceLocation(SPBRevamped.MOD_ID, level + "/eroom_door_" + eroomNumber);
+            return ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/eroom_door_" + eroomNumber);
         }
 
-        return new ResourceLocation(SPBRevamped.MOD_ID, level + "/eroom_" + eroomNumber);
+        return ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, level + "/eroom_" + eroomNumber);
     }
 
     public int getGridPosX() {

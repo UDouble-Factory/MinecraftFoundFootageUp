@@ -24,7 +24,7 @@ import org.joml.Matrix4f;
 import static net.minecraft.core.Direction.WEST;
 
 public class ThinFluorescentLightBlockEntityRenderer implements BlockEntityRenderer<ThinFluorescentLightBlockEntity> {
-    private static final ResourceLocation SHADER = new ResourceLocation(SPBRevamped.MOD_ID, "light/fluorescent_light");
+    private static final ResourceLocation SHADER = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "light/fluorescent_light");
 
 
     public ThinFluorescentLightBlockEntityRenderer(BlockEntityRendererProvider.Context context){
@@ -44,7 +44,7 @@ public class ThinFluorescentLightBlockEntityRenderer implements BlockEntityRende
         }
 
         if(client.level != null) {
-            shader.setFloat("warAngle", SPBRevampedClient.getWarpTimer(client.level));
+            shader.getUniform("warAngle").setFloat(SPBRevampedClient.getWarpTimer(client.level));
         }
 
         //don't render if blackout is active
@@ -83,10 +83,10 @@ public class ThinFluorescentLightBlockEntityRenderer implements BlockEntityRende
     }
 
     private void renderFace(ThinFluorescentLightBlockEntity entity, Matrix4f matrix, VertexConsumer buffer, float f, float g, float h, float i, float j, float k, float l, float m, Direction direction) {
-            buffer.vertex(matrix, f, h, j).endVertex();
-            buffer.vertex(matrix, g, h, k).endVertex();
-            buffer.vertex(matrix, g, i, l).endVertex();
-            buffer.vertex(matrix, f, i, m).endVertex();
+            buffer.addVertex(matrix, f, h, j);
+            buffer.addVertex(matrix, g, h, k);
+            buffer.addVertex(matrix, g, i, l);
+            buffer.addVertex(matrix, f, i, m);
     }
 
     protected RenderType getLayer() {

@@ -1,6 +1,6 @@
 package com.sp.world.generation.chunk_generator;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.sp.SPBRevamped;
 import net.minecraft.core.BlockPos;
@@ -23,7 +23,7 @@ import net.minecraft.world.level.levelgen.synth.ImprovedNoise;
 import java.util.Optional;
 
 public final class Level2ChunkGenerator extends BackroomsChunkGenerator {
-    public static final Codec<Level2ChunkGenerator> CODEC = RecordCodecBuilder.create(
+    public static final MapCodec<Level2ChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
                             BiomeSource.CODEC.fieldOf("biome_source").forGetter(generator -> generator.biomeSource),
                             NoiseGeneratorSettings.CODEC.fieldOf("settings").forGetter(generator -> generator.settings)
@@ -57,7 +57,7 @@ public final class Level2ChunkGenerator extends BackroomsChunkGenerator {
 
 
         if(chunk.getPos().x == 0 && chunk.getPos().z == 0 ){
-            roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, "level2/stairwell2_2");
+            roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level2/stairwell2_2");
             optional = structureTemplateManager.get(roomIdentifier);
 
             optional.ifPresent(structureTemplate -> structureTemplate.placeInWorld(
@@ -95,15 +95,15 @@ public final class Level2ChunkGenerator extends BackroomsChunkGenerator {
         ResourceLocation identifier;
 
         if(dark){
-            identifier = new ResourceLocation(SPBRevamped.MOD_ID, "level2/dark_room" + roomNumber);
+            identifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level2/dark_room" + roomNumber);
         }else{
-            identifier = new ResourceLocation(SPBRevamped.MOD_ID, "level2/room" + roomNumber);
+            identifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level2/room" + roomNumber);
         }
         return identifier;
     }
 
 
-    protected Codec<? extends ChunkGenerator> codec() {
+    protected MapCodec<? extends ChunkGenerator> codec() {
         return CODEC;
     }
 

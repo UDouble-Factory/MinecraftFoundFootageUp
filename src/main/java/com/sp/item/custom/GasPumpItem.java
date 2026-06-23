@@ -6,17 +6,15 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.SingletonGeoAnimatable;
-import software.bernie.geckolib.animatable.client.RenderProvider;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animatable.instance.SingletonAnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.instance.SingletonAnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class GasPumpItem extends BlockItem implements GeoItem {
     private AnimatableInstanceCache cache = new SingletonAnimatableInstanceCache(this);
-    private final Supplier<Object> renderProvider = GeoItem.makeRenderer(this);
 
     public GasPumpItem(Block block, Properties settings) {
         super(block, settings);
@@ -24,19 +22,14 @@ public class GasPumpItem extends BlockItem implements GeoItem {
     }
 
     @Override
-    public void createRenderer(Consumer<Object> consumer) {
-        consumer.accept(new RenderProvider() {
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
             private final GasPumpItemRenderer renderer = new GasPumpItemRenderer();
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public BlockEntityWithoutLevelRenderer getGeoItemRenderer() {
                 return this.renderer;
             }
         });
-    }
-
-    @Override
-    public Supplier<Object> getRenderProvider() {
-        return renderProvider;
     }
 
     @Override

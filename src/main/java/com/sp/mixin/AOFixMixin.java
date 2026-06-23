@@ -1,7 +1,6 @@
 package com.sp.mixin;
 
 import foundry.veil.api.client.render.VeilRenderSystem;
-import foundry.veil.api.client.render.deferred.VeilDeferredRenderer;
 import net.fabricmc.fabric.impl.client.indigo.Indigo;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.core.BlockPos;
@@ -192,10 +191,12 @@ public abstract class AOFixMixin {
         }
 
         //Reinserting veil's "Disable Ambient Occlusion"
-        VeilDeferredRenderer deferredRenderer = VeilRenderSystem.renderer().getDeferredRenderer();
-        if (!deferredRenderer.getLightRenderer().isAmbientOcclusionEnabled()) {
-            Arrays.fill(this.brightness, 1.0F);
-        }
+        // TODO(UDouble Factory): i need to check this
+//        VeilDeferredRenderer deferredRenderer = VeilRenderSystem.renderer().getDeferredRenderer();
+//        if (!deferredRenderer.getLightRenderer().isAmbientOcclusionEnabled()) {
+//            Arrays.fill(this.brightness, 1.0F);
+//        }
+
     }
 
 

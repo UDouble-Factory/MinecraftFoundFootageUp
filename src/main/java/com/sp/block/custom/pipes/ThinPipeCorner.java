@@ -1,5 +1,7 @@
 package com.sp.block.custom.pipes;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -17,8 +19,12 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 @SuppressWarnings("deprecation")
 public class ThinPipeCorner extends HorizontalDirectionalBlock {
+    public static final MapCodec<ThinPipeCorner> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(propertiesCodec()).apply(instance, ThinPipeCorner::new));
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final IntegerProperty TYPE = IntegerProperty.create("type", 0, 1);
+
+    @Override
+    public MapCodec<ThinPipeCorner> codec() { return CODEC; }
 
     private static final VoxelShape SHAPE_SOUTH = Block.box(0.0, 0.0, 0.0, 15.0, 16.0, 1.0);
     private static final VoxelShape SHAPE_NORTH = Block.box(0.0, 0.0, 15.0, 15.0, 16.0, 16.0);

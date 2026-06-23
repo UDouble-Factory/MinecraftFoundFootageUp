@@ -4,8 +4,9 @@ import com.sp.clientWrapper.ClientWrapper;
 import com.sp.init.ModBlockEntities;
 import com.sp.sounds.EmergencyAlarmSoundInstance;
 import foundry.veil.api.client.render.VeilRenderSystem;
-import foundry.veil.api.client.render.deferred.light.AreaLight;
-import foundry.veil.api.client.render.deferred.light.PointLight;
+import foundry.veil.api.client.render.light.data.AreaLightData;
+import foundry.veil.api.client.render.light.data.PointLightData;
+import foundry.veil.api.client.render.light.renderer.LightRenderHandle;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
@@ -19,9 +20,12 @@ public class EmergencyLightBlockEntity extends BlockEntity {
     public boolean initNormalLights = false;
 
     public EmergencyAlarmSoundInstance emergencyAlarmSoundInstance;
-    public AreaLight areaLight1;
-    public AreaLight areaLight2;
-    public PointLight pointLight;
+    public AreaLightData areaLight1;
+    public AreaLightData areaLight2;
+    public PointLightData pointLight;
+    public LightRenderHandle<AreaLightData> areaLight1Handle;
+    public LightRenderHandle<AreaLightData> areaLight2Handle;
+    public LightRenderHandle<PointLightData> pointLightHandle;
 
     public EmergencyLightBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.EMERGENCY_LIGHT_BLOCK_ENTITY, pos, state);
@@ -55,11 +59,14 @@ public class EmergencyLightBlockEntity extends BlockEntity {
 
     public void removeEmergencyLights() {
         if (this.initEmergencyLights && this.level.isClientSide) {
-            VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(this.areaLight1);
+            this.areaLight1Handle.free();
+            this.areaLight1Handle = null;
             this.areaLight1 = null;
-            VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(this.areaLight2);
+            this.areaLight2Handle.free();
+            this.areaLight2Handle = null;
             this.areaLight2 = null;
-            VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(this.pointLight);
+            this.pointLightHandle.free();
+            this.pointLightHandle = null;
             this.pointLight = null;
             this.initEmergencyLights = false;
         }
@@ -67,7 +74,8 @@ public class EmergencyLightBlockEntity extends BlockEntity {
 
     public void removeNormalLights() {
         if(this.initNormalLights && this.level.isClientSide) {
-            VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(this.pointLight);
+            this.pointLightHandle.free();
+            this.pointLightHandle = null;
             this.pointLight = null;
             this.initNormalLights = false;
         }

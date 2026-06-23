@@ -13,7 +13,6 @@ import software.bernie.geckolib.loading.json.raw.ModelProperties;
 import software.bernie.geckolib.loading.object.BakedModelFactory;
 import software.bernie.geckolib.loading.object.BoneStructure;
 import software.bernie.geckolib.loading.object.GeometryTree;
-import software.bernie.geckolib.util.RenderUtils;
 
 import java.util.List;
 
@@ -37,8 +36,8 @@ public class MowzieModelFactory implements BakedModelFactory {
     public GeoBone constructBone(BoneStructure boneStructure, ModelProperties properties, @Nullable GeoBone parent) {
         Bone bone = boneStructure.self();
         MowzieGeoBone newBone = new MowzieGeoBone(parent, bone.name(), bone.mirror(), bone.inflate(), bone.neverRender(), bone.reset());
-        Vec3 rotation = RenderUtils.arrayToVec(bone.rotation());
-        Vec3 pivot = RenderUtils.arrayToVec(bone.pivot());
+        Vec3 rotation = bone.rotation() != null ? new Vec3(bone.rotation()[0], bone.rotation()[1], bone.rotation()[2]) : Vec3.ZERO;
+        Vec3 pivot = bone.pivot() != null ? new Vec3(bone.pivot()[0], bone.pivot()[1], bone.pivot()[2]) : Vec3.ZERO;
 
         newBone.updateRotation((float) Math.toRadians(-rotation.x), (float) Math.toRadians(-rotation.y), (float) Math.toRadians(rotation.z));
         newBone.updatePivot((float) -pivot.x, (float) pivot.y, (float) pivot.z);
@@ -58,10 +57,10 @@ public class MowzieModelFactory implements BakedModelFactory {
     public GeoCube constructCube(Cube cube, ModelProperties properties, GeoBone bone) {
         boolean mirror = cube.mirror() == Boolean.TRUE;
         double inflate = cube.inflate() != null ? cube.inflate() / 16f : (bone.getInflate() == null ? 0 : bone.getInflate() / 16f);
-        Vec3 size = RenderUtils.arrayToVec(cube.size());
-        Vec3 origin = RenderUtils.arrayToVec(cube.origin());
-        Vec3 rotation = RenderUtils.arrayToVec(cube.rotation());
-        Vec3 pivot = RenderUtils.arrayToVec(cube.pivot());
+        Vec3 size = cube.size() != null ? new Vec3(cube.size()[0], cube.size()[1], cube.size()[2]) : Vec3.ZERO;
+        Vec3 origin = cube.origin() != null ? new Vec3(cube.origin()[0], cube.origin()[1], cube.origin()[2]) : Vec3.ZERO;
+        Vec3 rotation = cube.rotation() != null ? new Vec3(cube.rotation()[0], cube.rotation()[1], cube.rotation()[2]) : Vec3.ZERO;
+        Vec3 pivot = cube.pivot() != null ? new Vec3(cube.pivot()[0], cube.pivot()[1], cube.pivot()[2]) : Vec3.ZERO;
         origin = new Vec3(-(origin.x + size.x) / 16d, origin.y / 16d, origin.z / 16d);
         Vec3 vertexSize = size.multiply(1 / 16d, 1 / 16d, 1 / 16d);
 

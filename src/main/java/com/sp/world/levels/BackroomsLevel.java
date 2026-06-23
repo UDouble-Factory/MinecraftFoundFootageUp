@@ -1,6 +1,6 @@
 package com.sp.world.levels;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.sp.SPBRevamped;
 import com.sp.cca_stuff.PlayerComponent;
 import com.sp.world.events.AbstractEvent;
@@ -24,7 +24,7 @@ public abstract class BackroomsLevel {
     private final String levelId;
     private final String modId;
     private final RoomCount roomCount;
-    private final Codec<? extends ChunkGenerator> chunkGeneratorCodec;
+    private final MapCodec<? extends ChunkGenerator> chunkGeneratorCodec;
     private final ResourceKey<Level> worldKey;
     private final Vec3 spawnPos;
     public Random random = new Random();
@@ -32,19 +32,19 @@ public abstract class BackroomsLevel {
     private final HashMap<String, Supplier<AbstractEvent>> events = new HashMap<>();
     private final HashMap<String, LevelTransitionCriteriaCallback> transitions = new HashMap<>();
 
-    public BackroomsLevel(String levelId, Codec<? extends ChunkGenerator> chunkGenerator, Vec3 spawnPos, ResourceKey<Level> worldKey) {
+    public BackroomsLevel(String levelId, MapCodec<? extends ChunkGenerator> chunkGenerator, Vec3 spawnPos, ResourceKey<Level> worldKey) {
         this(levelId, chunkGenerator, null, spawnPos, worldKey, SPBRevamped.MOD_ID);
     }
 
-    public BackroomsLevel(String levelId, Codec<? extends ChunkGenerator> chunkGenerator, RoomCount roomCount, Vec3 spawnPos, ResourceKey<Level> worldKey) {
+    public BackroomsLevel(String levelId, MapCodec<? extends ChunkGenerator> chunkGenerator, RoomCount roomCount, Vec3 spawnPos, ResourceKey<Level> worldKey) {
         this(levelId, chunkGenerator, roomCount, spawnPos, worldKey, SPBRevamped.MOD_ID);
     }
 
-    public BackroomsLevel(String levelId, Codec<? extends ChunkGenerator> chunkGenerator, Vec3 spawnPos, ResourceKey<Level> worldKey, String modId) {
+    public BackroomsLevel(String levelId, MapCodec<? extends ChunkGenerator> chunkGenerator, Vec3 spawnPos, ResourceKey<Level> worldKey, String modId) {
         this(levelId, chunkGenerator, null, spawnPos, worldKey, modId);
     }
 
-    public BackroomsLevel(String levelId, Codec<? extends ChunkGenerator> chunkGenerator, @Nullable RoomCount roomCount, Vec3 spawnPos, ResourceKey<Level> worldKey, String modId) {
+    public BackroomsLevel(String levelId, MapCodec<? extends ChunkGenerator> chunkGenerator, @Nullable RoomCount roomCount, Vec3 spawnPos, ResourceKey<Level> worldKey, String modId) {
         this.levelId = levelId;
         this.chunkGeneratorCodec = chunkGenerator;
         this.spawnPos = spawnPos;
@@ -55,7 +55,7 @@ public abstract class BackroomsLevel {
     }
 
     public void register() {
-        Registry.register(BuiltInRegistries.CHUNK_GENERATOR, new ResourceLocation(modId, levelId + "_chunk_generator"), chunkGeneratorCodec);
+        Registry.register(BuiltInRegistries.CHUNK_GENERATOR, ResourceLocation.fromNamespaceAndPath(modId, levelId + "_chunk_generator"), chunkGeneratorCodec);
     }
 
     public String getLevelId() {

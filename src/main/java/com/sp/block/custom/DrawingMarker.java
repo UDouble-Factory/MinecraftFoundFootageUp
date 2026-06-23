@@ -1,5 +1,7 @@
 package com.sp.block.custom;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.sp.block.entity.DrawingMarkerBlockEntity;
 import com.sp.init.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -22,8 +24,12 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("deprecation")
 public class DrawingMarker extends BaseEntityBlock {
+    public static final MapCodec<DrawingMarker> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(propertiesCodec()).apply(instance, DrawingMarker::new));
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty TYPE = BooleanProperty.create("type");
+
+    @Override
+    public MapCodec<DrawingMarker> codec() { return CODEC; }
 
     public DrawingMarker(Properties settings) {
         super(settings);

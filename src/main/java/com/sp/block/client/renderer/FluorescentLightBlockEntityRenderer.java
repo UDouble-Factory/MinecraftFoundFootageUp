@@ -40,10 +40,10 @@ public class FluorescentLightBlockEntityRenderer implements BlockEntityRenderer<
     }
 
     private void renderFace(FluorescentLightBlockEntity entity, Matrix4f matrix, VertexConsumer buffer, float f, float g, float h, float i, float j, float k, float l, float m, Direction direction) {
-            buffer.vertex(matrix, f, h, j).endVertex();
-            buffer.vertex(matrix, g, h, k).endVertex();
-            buffer.vertex(matrix, g, i, l).endVertex();
-            buffer.vertex(matrix, f, i, m).endVertex();
+            buffer.addVertex(matrix, f, h, j);
+            buffer.addVertex(matrix, g, h, k);
+            buffer.addVertex(matrix, g, i, l);
+            buffer.addVertex(matrix, f, i, m);
     }
 
     protected RenderType getLayer() {

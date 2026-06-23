@@ -7,7 +7,8 @@ import com.sp.init.ModBlockEntities;
 import com.sp.init.ModBlocks;
 import com.sp.world.levels.BackroomsLevelWithLights;
 import foundry.veil.api.client.render.VeilRenderSystem;
-import foundry.veil.api.client.render.deferred.light.PointLight;
+import foundry.veil.api.client.render.light.data.PointLightData;
+import foundry.veil.api.client.render.light.renderer.LightRenderHandle;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
@@ -21,7 +22,8 @@ import static com.sp.clientWrapper.ClientWrapper.doClientSideThinFluorescentsTic
 public class ThinFluorescentLightBlockEntity extends BlockEntity {
     BlockState currentState;
     public boolean playingSound;
-    public PointLight pointLight;
+    public PointLightData pointLight;
+    public LightRenderHandle<PointLightData> pointLightHandle;
     public boolean prevOn;
     public final int randInt;
     public int ticks = 0;
@@ -39,8 +41,9 @@ public class ThinFluorescentLightBlockEntity extends BlockEntity {
     @Override
     public void setRemoved() {
         if (this.getLevel() != null && this.getLevel().isClientSide){
-            if(pointLight != null) {
-                VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(pointLight);
+            if(pointLightHandle != null) {
+                this.pointLightHandle.free();
+                this.pointLightHandle = null;
                 pointLight = null;
             }
         }

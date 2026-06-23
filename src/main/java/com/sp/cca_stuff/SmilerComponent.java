@@ -1,8 +1,8 @@
 package com.sp.cca_stuff;
 
 import com.sp.entity.custom.SmilerEntity;
-import dev.onyxstudios.cca.api.v3.component.sync.AutoSyncedComponent;
-import dev.onyxstudios.cca.api.v3.component.tick.ClientTickingComponent;
+import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
+import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import net.minecraft.nbt.CompoundTag;
 
 public class SmilerComponent implements AutoSyncedComponent, ClientTickingComponent {

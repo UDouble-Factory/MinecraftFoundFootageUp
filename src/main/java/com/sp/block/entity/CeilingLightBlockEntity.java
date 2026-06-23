@@ -2,7 +2,8 @@ package com.sp.block.entity;
 
 import com.sp.init.ModBlockEntities;
 import foundry.veil.api.client.render.VeilRenderSystem;
-import foundry.veil.api.client.render.deferred.light.AreaLight;
+import foundry.veil.api.client.render.light.data.AreaLightData;
+import foundry.veil.api.client.render.light.renderer.LightRenderHandle;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
@@ -10,10 +11,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
-import org.joml.Vector3d;
 
 public class CeilingLightBlockEntity extends BlockEntity {
-    AreaLight light;
+    AreaLightData light;
+    LightRenderHandle<AreaLightData> lightHandle;
     float brightness;
     float angle;
     int ticks;
@@ -29,8 +30,9 @@ public class CeilingLightBlockEntity extends BlockEntity {
 
     @Override
     public void setRemoved() {
-        if (this.light != null && level.isClientSide) {
-            VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(this.light);
+        if (this.lightHandle != null && level.isClientSide) {
+            this.lightHandle.free();
+            this.lightHandle = null;
             this.light = null;
         }
         super.setRemoved();
@@ -48,14 +50,14 @@ public class CeilingLightBlockEntity extends BlockEntity {
         Vec3 position = pos.getCenter().add(-0.5, -0.06, 0);
         this.brightness = 2.58f;
         this.angle = 60.4f;
-        this.light = new AreaLight();
+        this.light = new AreaLightData();
+        this.light.getOrientation().rotateXYZ((float) Math.toRadians(-90d), 0, 0);
+        this.light.position.set(position.x, position.y, position.z);
 
-        VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().addLight(this.light
+        this.lightHandle = VeilRenderSystem.renderer().getLightRenderer().addLight(this.light
                 .setBrightness(this.brightness)
                 .setSize(0.9, 0.0)
                 .setAngle((float) Math.toRadians(this.angle))
-                .setOrientation(new Quaternionf().rotateXYZ((float) Math.toRadians(-90d), 0, 0))
-                .setPosition(new Vector3d(position.x, position.y, position.z))
                 .setDistance(15)
         );
 

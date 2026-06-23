@@ -35,15 +35,15 @@ public class BakedModelManagerMixin {
         VANILLA_ATLASES = new HashMap<>(VANILLA_ATLASES);
         VANILLA_ATLASES.put(
                 RenderLayers.NORMAL_ATLAS_TEXTURE,
-                new ResourceLocation(SPBRevamped.MOD_ID, "normal")
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "normal")
         );
         VANILLA_ATLASES.put(
                 RenderLayers.HEIGHT_ATLAS_TEXTURE,
-                new ResourceLocation(SPBRevamped.MOD_ID, "height")
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "height")
         );
         VANILLA_ATLASES.put(
                 TextureAtlas.LOCATION_BLOCKS,
-                new ResourceLocation(SPBRevamped.MOD_ID, "blocks")
+                ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "blocks")
         );
     }
 

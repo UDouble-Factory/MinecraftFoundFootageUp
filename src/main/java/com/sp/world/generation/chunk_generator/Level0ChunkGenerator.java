@@ -1,6 +1,6 @@
 package com.sp.world.generation.chunk_generator;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.sp.SPBRevamped;
 import com.sp.init.ModBlocks;
@@ -25,7 +25,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 import java.util.Optional;
 
 public class Level0ChunkGenerator extends BackroomsChunkGenerator {
-    public static final Codec<Level0ChunkGenerator> CODEC = RecordCodecBuilder.create(
+    public static final MapCodec<Level0ChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
                             BiomeSource.CODEC.fieldOf("biome_source").forGetter(generator -> generator.biomeSource)
                     ).apply(instance, instance.stable(Level0ChunkGenerator::new)));
@@ -36,7 +36,7 @@ public class Level0ChunkGenerator extends BackroomsChunkGenerator {
     }
 
     @Override
-    protected Codec<? extends ChunkGenerator> codec() {
+    protected MapCodec<? extends ChunkGenerator> codec() {
         return CODEC;
     }
 
@@ -70,7 +70,7 @@ public class Level0ChunkGenerator extends BackroomsChunkGenerator {
                 }
                 world.setBlock(mutable.set(0, 25, 0), ModBlocks.GHOST_CEILING_TILE.defaultBlockState(), 16);
 
-                roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, "level0/megaroom1");
+                roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level0/megaroom1");
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE).setIgnoreEntities(true);
                 optional = structureTemplateManager.get(roomIdentifier);
 
@@ -101,7 +101,7 @@ public class Level0ChunkGenerator extends BackroomsChunkGenerator {
 
                 if(!chunk.getPos().getBlockAt(0,20,0).closerThan(new Vec3i(0,20,0), this.getExitSpawnRadius(world))) {
                     if(megaRooms != 1){
-                        roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, "level0/stairwell_0");
+                        roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level0/stairwell_0");
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE).setIgnoreEntities(true);
                         optional = structureTemplateManager.get(roomIdentifier);
 
@@ -121,7 +121,7 @@ public class Level0ChunkGenerator extends BackroomsChunkGenerator {
                     if (!isNearMegaRooms(x, z, world)) {
 
                         megaRooms = random.nextIntBetweenInclusive(1, 6);
-                        roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, "level0/megaroom" + megaRooms);
+                        roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level0/megaroom" + megaRooms);
                         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE).setIgnoreEntities(true);
                         optional = structureTemplateManager.get(roomIdentifier);
 
@@ -216,10 +216,10 @@ public class Level0ChunkGenerator extends BackroomsChunkGenerator {
         int roofNumber = random.nextIntBetweenInclusive(1,5);
 
         if (roofNumber == 1){
-            return new ResourceLocation(SPBRevamped.MOD_ID, "level0/roof2");
+            return ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level0/roof2");
         }
         else {
-            return new ResourceLocation(SPBRevamped.MOD_ID, "level0/roof1");
+            return ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level0/roof1");
         }
 
 

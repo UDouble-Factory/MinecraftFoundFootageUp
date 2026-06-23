@@ -6,7 +6,8 @@ import com.sp.init.ModBlockEntities;
 import com.sp.init.ModBlocks;
 import com.sp.world.levels.BackroomsLevelWithLights;
 import foundry.veil.api.client.render.VeilRenderSystem;
-import foundry.veil.api.client.render.deferred.light.PointLight;
+import foundry.veil.api.client.render.light.data.PointLightData;
+import foundry.veil.api.client.render.light.renderer.LightRenderHandle;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
@@ -21,7 +22,8 @@ public class FluorescentLightBlockEntity extends BlockEntity {
     public RandomSource random = RandomSource.create();
     public java.util.Random random1 = new java.util.Random();
     public boolean playingSound;
-    public PointLight pointLight;
+    public PointLightData pointLight;
+    public LightRenderHandle<PointLightData> pointLightHandle;
     public boolean prevOn;
     public final int randInt;
     public int ticks = 0;
@@ -48,11 +50,12 @@ public class FluorescentLightBlockEntity extends BlockEntity {
 
         this.setPlayingSound(false);
 
-        if (this.pointLight == null) {
+        if (this.pointLightHandle == null) {
             return;
         }
 
-        VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(this.pointLight);
+        this.pointLightHandle.free();
+        this.pointLightHandle = null;
         this.pointLight = null;
     }
 

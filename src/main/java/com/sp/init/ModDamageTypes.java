@@ -9,8 +9,8 @@ import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.level.Level;
 
 public class ModDamageTypes {
-    public static final ResourceKey<DamageType> ACID_WATER = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(SPBRevamped.MOD_ID, "acid_water"));
-    public static final ResourceKey<DamageType> SMILER = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(SPBRevamped.MOD_ID, "smiler"));
+    public static final ResourceKey<DamageType> ACID_WATER = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "acid_water"));
+    public static final ResourceKey<DamageType> SMILER = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "smiler"));
 
     public static DamageSource of(Level world, ResourceKey<DamageType> key){
         return new DamageSource(world.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(key));

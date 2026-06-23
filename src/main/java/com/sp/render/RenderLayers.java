@@ -14,13 +14,13 @@ import java.util.function.Function;
 
 public class RenderLayers extends RenderType {
 
-    public static final ResourceLocation NORMAL_ATLAS_TEXTURE = new ResourceLocation(SPBRevamped.MOD_ID, "textures/atlas/normal.png");
-    public static final ResourceLocation HEIGHT_ATLAS_TEXTURE = new ResourceLocation(SPBRevamped.MOD_ID, "textures/atlas/height.png");
+    public static final ResourceLocation NORMAL_ATLAS_TEXTURE = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "textures/atlas/normal.png");
+    public static final ResourceLocation HEIGHT_ATLAS_TEXTURE = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "textures/atlas/height.png");
 
-    private static final RenderStateShard.ShaderStateShard LIGHT_SHADER = VeilRenderBridge.shaderState(new ResourceLocation(SPBRevamped.MOD_ID, "light/fluorescent_light"));
-    private static final RenderStateShard.ShaderStateShard DISTORTED_ENTITY_SHADER = VeilRenderBridge.shaderState(new ResourceLocation(SPBRevamped.MOD_ID, "distorted_entity"));
-    private static final RenderStateShard.ShaderStateShard POOLROOMS_SKY_SHADER = VeilRenderBridge.shaderState(new ResourceLocation(SPBRevamped.MOD_ID, "sky"));
-    private static final RenderStateShard.ShaderStateShard PBR_SHADER = VeilRenderBridge.shaderState(new ResourceLocation(SPBRevamped.MOD_ID, "pbr/pbr"));
+    private static final RenderStateShard.ShaderStateShard LIGHT_SHADER = VeilRenderBridge.shaderState(ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "light/fluorescent_light"));
+    private static final RenderStateShard.ShaderStateShard DISTORTED_ENTITY_SHADER = VeilRenderBridge.shaderState(ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "distorted_entity"));
+    private static final RenderStateShard.ShaderStateShard POOLROOMS_SKY_SHADER = VeilRenderBridge.shaderState(ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "sky"));
+    private static final RenderStateShard.ShaderStateShard PBR_SHADER = VeilRenderBridge.shaderState(ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "pbr/pbr"));
 
     private static final RenderType PBR_LAYER = RenderType.create(
             "pbr",

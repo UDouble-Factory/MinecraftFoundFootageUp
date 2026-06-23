@@ -18,6 +18,7 @@ import com.sp.entity.ik.parts.sever_limbs.ServerLimb;
 import com.sp.init.BackroomsLevels;
 import com.sp.init.HelpfulHintManager;
 import com.sp.init.ModSounds;
+import com.sp.networking.C2S.TargetEntitySyncPayload;
 import com.sp.networking.InitializePackets;
 import com.sp.sounds.*;
 import com.sp.sounds.entity.SkinWalkerChaseSoundInstance;
@@ -31,11 +32,11 @@ import com.sp.world.levels.custom.Level1BackroomsLevel;
 import com.sp.world.levels.custom.Level2BackroomsLevel;
 import com.sp.world.levels.custom.PoolroomsBackroomsLevel;
 import foundry.veil.api.client.render.VeilRenderSystem;
-import foundry.veil.api.client.render.deferred.light.AreaLight;
-import foundry.veil.api.client.render.deferred.light.PointLight;
+import foundry.veil.api.client.render.light.data.AreaLightData;
+import foundry.veil.api.client.render.light.data.PointLightData;
+import foundry.veil.api.client.render.light.renderer.LightRenderHandle;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -43,7 +44,6 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
@@ -157,7 +157,7 @@ public class ClientWrapper {
 
                 if (playerComponent.glitchTimer >= 3) {
                     if (SPBRevampedClient.isInLevel(BackroomsLevels.LEVEL324_BACKROOMS_LEVEL) && playerComponent.player.level().getBlockState(playerComponent.player.blockPosition().relative(Direction.DOWN, 3)).is(Blocks.RED_WOOL)) {
-                        playerComponent.player.teleportToWithTicket(playerComponent.player.getX(), playerComponent.player.getY() - 65, playerComponent.player.getZ());
+                        playerComponent.player.teleportTo(playerComponent.player.getX(), playerComponent.player.getY() - 65, playerComponent.player.getZ());
                     }
                 }
             }
@@ -181,13 +181,8 @@ public class ClientWrapper {
             if (playerComponent.getTargetEntity() != client.crosshairPickEntity) {
                 playerComponent.setTargetEntity(client.crosshairPickEntity);
 
-                FriendlyByteBuf buffer = PacketByteBufs.create();
-                if (playerComponent.getTargetEntity() != null) {
-                    buffer.writeInt(playerComponent.getTargetEntity().getId());
-                } else {
-                    buffer.writeInt(-1);
-                }
-                ClientPlayNetworking.send(InitializePackets.TARGET_ENTITY_SYNC, buffer);
+                int entityId = playerComponent.getTargetEntity() != null ? playerComponent.getTargetEntity().getId() : -1;
+                ClientPlayNetworking.send(new TargetEntitySyncPayload(entityId));
             }
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -426,30 +421,30 @@ public class ClientWrapper {
             block.removeNormalLights();
 
             if (!block.initEmergencyLights) {
-                block.areaLight1 = new AreaLight();
-                block.areaLight2 = new AreaLight();
-                block.pointLight = new PointLight();
+                block.areaLight1 = new AreaLightData();
+                block.areaLight1.getOrientation().rotateXYZ(0, 0, 0);
+                block.areaLight1.getPosition().set(centerPos.x, centerPos.y, centerPos.z);
+                block.areaLight2 = new AreaLightData();
+                block.areaLight2.getOrientation().rotateXYZ(0, 0, 0);
+                block.areaLight2.getPosition().set(centerPos.x, centerPos.y, centerPos.z);
+                block.pointLight = new PointLightData();
 
 
-                VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().addLight(block.areaLight1
+                block.areaLight1Handle = VeilRenderSystem.renderer().getLightRenderer().addLight(block.areaLight1
                         .setBrightness(1.0f)
                         .setColor(1.0f, 0.0f, 0.0f)
                         .setSize(0.0, 0.0)
                         .setAngle((float) Math.toRadians(50.0f))
-                        .setOrientation(new Quaternionf().rotateXYZ(0, 0, 0))
-                        .setPosition(new Vector3d(centerPos.x, centerPos.y, centerPos.z))
                         .setDistance(15)
                 );
-                VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().addLight(block.areaLight2
+                block.areaLight2Handle = VeilRenderSystem.renderer().getLightRenderer().addLight(block.areaLight2
                         .setBrightness(1.0f)
                         .setColor(1.0f, 0.0f, 0.0f)
                         .setSize(0.0, 0.0)
                         .setAngle((float) Math.toRadians(50.0f))
-                        .setOrientation(new Quaternionf().rotateXYZ(0, 0, 0))
-                        .setPosition(new Vector3d(centerPos.x, centerPos.y, centerPos.z))
                         .setDistance(15)
                 );
-                VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().addLight(block.pointLight
+                block.pointLightHandle = VeilRenderSystem.renderer().getLightRenderer().addLight(block.pointLight
                         .setBrightness(0.5f)
                         .setColor(1.0f, 0.0f, 0.0f)
                         .setPosition(new Vector3d(centerPos.x, centerPos.y, centerPos.z))
@@ -459,10 +454,14 @@ public class ClientWrapper {
             }
 
             Quaternionf quaternionf1 = new Quaternionf(quaternionf);
-            block.areaLight1.setOrientation(quaternionf1.rotateLocalY((float) Math.toRadians(block.randomOffset + world.getGameTime() * 20)));
+            quaternionf1.rotateLocalY((float) Math.toRadians(block.randomOffset + world.getGameTime() * 20));
+            block.areaLight1.getOrientation().set(quaternionf1);
+            block.areaLight1Handle.markDirty();
 
             Quaternionf quaternionf2 = new Quaternionf(quaternionf);
-            block.areaLight2.setOrientation(quaternionf2.rotateLocalY((float) Math.toRadians(block.randomOffset + 180.0f + world.getGameTime() * 20)));
+            quaternionf2.rotateLocalY((float) Math.toRadians(block.randomOffset + 180.0f + world.getGameTime() * 20));
+            block.areaLight2.getOrientation().set(quaternionf2);
+            block.areaLight2Handle.markDirty();
 
             return;
         }
@@ -476,9 +475,9 @@ public class ClientWrapper {
         block.removeEmergencyLights();
 
         if (!block.initNormalLights) {
-            block.pointLight = new PointLight();
+            block.pointLight = new PointLightData();
             Vec3 centerPos = pos.getCenter().add(0.0f, -0.15625f, 0.0f);
-            VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().addLight(block.pointLight
+            block.pointLightHandle = VeilRenderSystem.renderer().getLightRenderer().addLight(block.pointLight
                     .setBrightness(1.0f)
                     .setPosition(new Vector3d(centerPos.x, centerPos.y, centerPos.z))
                     .setRadius(15.0f)
@@ -517,8 +516,8 @@ public class ClientWrapper {
                     }
 
                     if (block.pointLight == null) {
-                        block.pointLight = new PointLight();
-                        VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().addLight(block.pointLight
+                        block.pointLight = new PointLightData();
+                        block.pointLightHandle = VeilRenderSystem.renderer().getLightRenderer().addLight(block.pointLight
                                 .setRadius(18f)
                                 .setBrightness(0.0024f)
                         );
@@ -568,14 +567,16 @@ public class ClientWrapper {
                         }
                     }
                 } else {
-                    if (block.pointLight != null) {
-                        VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(block.pointLight);
+                    if (block.pointLightHandle != null) {
+                        block.pointLightHandle.free();
+                        block.pointLightHandle = null;
                         block.pointLight = null;
                     }
                 }
             } else {
-                if (block.pointLight != null) {
-                    VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(block.pointLight);
+                if (block.pointLightHandle != null) {
+                    block.pointLightHandle.free();
+                    block.pointLightHandle = null;
                     block.pointLight = null;
                 }
             }
@@ -613,8 +614,8 @@ public class ClientWrapper {
                     }
 
                     if (block.pointLight == null) {
-                        block.pointLight = new PointLight();
-                        VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().addLight(block.pointLight
+                        block.pointLight = new PointLightData();
+                        block.pointLightHandle = VeilRenderSystem.renderer().getLightRenderer().addLight(block.pointLight
                                 .setRadius(18f)
                                 .setBrightness(0.0024f)
                         );
@@ -642,14 +643,16 @@ public class ClientWrapper {
                         }
                     }
                 } else {
-                    if (block.pointLight != null) {
-                        VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(block.pointLight);
+                    if (block.pointLightHandle != null) {
+                        block.pointLightHandle.free();
+                        block.pointLightHandle = null;
                         block.pointLight = null;
                     }
                 }
             } else {
-                if (block.pointLight != null) {
-                    VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(block.pointLight);
+                if (block.pointLightHandle != null) {
+                    block.pointLightHandle.free();
+                    block.pointLightHandle = null;
                     block.pointLight = null;
                 }
             }
@@ -688,8 +691,8 @@ public class ClientWrapper {
                     }
 
                     if (block.pointLight == null) {
-                        block.pointLight = new PointLight();
-                        VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().addLight(block.pointLight
+                        block.pointLight = new PointLightData();
+                        block.pointLightHandle = VeilRenderSystem.renderer().getLightRenderer().addLight(block.pointLight
                                 .setRadius(13f)
                                 .setColor((float) 255 / 255, (float) 240 / 255, (float) 100 / 255)
                                 .setPosition(position.x, position.y - 1, position.z)
@@ -697,16 +700,18 @@ public class ClientWrapper {
                         );
                     }
                 } else {
-                    if (block.pointLight != null) {
-                        VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(block.pointLight);
+                    if (block.pointLightHandle != null) {
+                        block.pointLightHandle.free();
+                        block.pointLightHandle = null;
                         block.pointLight = null;
                     }
                     block.setPlayingSound(false);
                 }
 
             } else {
-                if (block.pointLight != null) {
-                    VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(block.pointLight);
+                if (block.pointLightHandle != null) {
+                    block.pointLightHandle.free();
+                    block.pointLightHandle = null;
                     block.pointLight = null;
                 }
             }

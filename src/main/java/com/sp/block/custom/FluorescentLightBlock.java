@@ -1,5 +1,7 @@
 package com.sp.block.custom;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.sp.block.entity.FluorescentLightBlockEntity;
 import com.sp.init.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -19,9 +21,13 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import org.jetbrains.annotations.Nullable;
 
 public class FluorescentLightBlock extends BaseEntityBlock {
+    public static final MapCodec<FluorescentLightBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(propertiesCodec()).apply(instance, FluorescentLightBlock::new));
     public static final BooleanProperty ON = BooleanProperty.create("on");
     public static final BooleanProperty COPY = BooleanProperty.create("copy");
     public static final BooleanProperty BLACKOUT = BooleanProperty.create("blackout");
+
+    @Override
+    public MapCodec<FluorescentLightBlock> codec() { return CODEC; }
 
 
     public FluorescentLightBlock(Properties settings) {

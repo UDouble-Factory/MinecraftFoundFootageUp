@@ -1,5 +1,6 @@
 package com.sp.block.custom;
 
+import com.mojang.serialization.MapCodec;
 import com.sp.block.entity.ThinFluorescentLightBlockEntity;
 import com.sp.init.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -39,6 +40,13 @@ public class ThinFluorescentLightBlock extends BaseEntityBlock {
     public ThinFluorescentLightBlock(Properties settings) {
         super(settings);
         this.registerDefaultState(this.defaultBlockState().setValue(BLACKOUT, false).setValue(ON, true).setValue(COPY, false));
+    }
+
+    public static final MapCodec<ThinFluorescentLightBlock> CODEC = simpleCodec(ThinFluorescentLightBlock::new);
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     @Nullable

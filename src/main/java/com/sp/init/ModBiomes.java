@@ -7,5 +7,5 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 
 public class ModBiomes {
-    public static final ResourceKey<Biome> BASE_BACKROOMS_BIOME = ResourceKey.create(Registries.BIOME, new ResourceLocation(SPBRevamped.MOD_ID, "base_backrooms_biome"));
+    public static final ResourceKey<Biome> BASE_BACKROOMS_BIOME = ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "base_backrooms_biome"));
 }

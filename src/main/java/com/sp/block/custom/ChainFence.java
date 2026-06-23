@@ -1,5 +1,7 @@
 package com.sp.block.custom;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -13,8 +15,12 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class ChainFence extends HorizontalDirectionalBlock {
+    public static final MapCodec<ChainFence> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(propertiesCodec()).apply(instance, ChainFence::new));
     private static final VoxelShape SIDE1 = Block.box(0.0, 0.0, 7.5, 16.0, 16.0, 8.5);
     private static final VoxelShape SIDE2 = Block.box(7.5, 0.0, 0.0, 8.5, 16.0, 16.0);
+
+    @Override
+    public MapCodec<ChainFence> codec() { return CODEC; }
 
 
     public ChainFence(Properties settings) {

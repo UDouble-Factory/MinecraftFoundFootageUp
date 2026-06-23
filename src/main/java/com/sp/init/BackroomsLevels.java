@@ -18,13 +18,13 @@ import java.util.Map;
 import java.util.Optional;
 
 public class BackroomsLevels {
-    public static final ResourceKey<DimensionType> LEVEL0_DIM_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, new ResourceLocation(SPBRevamped.MOD_ID, "level0_type"));
-    public static final ResourceKey<Level> LEVEL0_WORLD_KEY = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(SPBRevamped.MOD_ID, "level0"));
-    public static final ResourceKey<Level> LEVEL1_WORLD_KEY = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(SPBRevamped.MOD_ID, "level1"));
-    public static final ResourceKey<Level> LEVEL2_WORLD_KEY = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(SPBRevamped.MOD_ID, "level2"));
-    public static final ResourceKey<Level> POOLROOMS_WORLD_KEY = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(SPBRevamped.MOD_ID, "poolrooms"));
-    public static final ResourceKey<Level> INFINITE_FIELD_WORLD_KEY = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(SPBRevamped.MOD_ID, "infinite_field"));
-    public static final ResourceKey<Level> LEVEL324_WORLD_KEY = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(SPBRevamped.MOD_ID, "level324"));
+    public static final ResourceKey<DimensionType> LEVEL0_DIM_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level0_type"));
+    public static final ResourceKey<Level> LEVEL0_WORLD_KEY = ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level0"));
+    public static final ResourceKey<Level> LEVEL1_WORLD_KEY = ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level1"));
+    public static final ResourceKey<Level> LEVEL2_WORLD_KEY = ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level2"));
+    public static final ResourceKey<Level> POOLROOMS_WORLD_KEY = ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "poolrooms"));
+    public static final ResourceKey<Level> INFINITE_FIELD_WORLD_KEY = ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "infinite_field"));
+    public static final ResourceKey<Level> LEVEL324_WORLD_KEY = ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level324"));
 
     public static final BackroomsLevel LEVEL0_BACKROOMS_LEVEL = new Level0BackroomsLevel();
     public static final BackroomsLevel LEVEL1_BACKROOMS_LEVEL = new Level1BackroomsLevel();

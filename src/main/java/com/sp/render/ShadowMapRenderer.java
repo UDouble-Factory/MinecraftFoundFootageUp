@@ -37,7 +37,7 @@ public class ShadowMapRenderer {
         int height = client.getMainRenderTarget().viewHeight;
         Frustum frustum;
 
-        AdvancedFbo shadowMap = VeilRenderSystem.renderer().getFramebufferManager().getFramebuffer(new ResourceLocation(SPBRevamped.MOD_ID, "shadowmap"));
+        AdvancedFbo shadowMap = VeilRenderSystem.renderer().getFramebufferManager().getFramebuffer(ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "shadowmap"));
         if(shadowMap != null) {
             RenderSystem.setProjectionMatrix(shadowProjMat, VertexSorting.ORTHOGRAPHIC_Z);
 
@@ -91,7 +91,7 @@ public class ShadowMapRenderer {
         int height = client.getMainRenderTarget().viewHeight;
         Frustum frustum;
 
-        AdvancedFbo shadowMap = VeilRenderSystem.renderer().getFramebufferManager().getFramebuffer(new ResourceLocation(SPBRevamped.MOD_ID, "shadowmap"));
+        AdvancedFbo shadowMap = VeilRenderSystem.renderer().getFramebufferManager().getFramebuffer(ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "shadowmap"));
         if(shadowMap != null) {
             RenderSystem.setProjectionMatrix(shadowProjMat, VertexSorting.ORTHOGRAPHIC_Z);
 

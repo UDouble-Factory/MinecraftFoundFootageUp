@@ -8,18 +8,18 @@ import com.sp.entity.ik.model.GeckoLib.GeoModelAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 
 public class SkinWalkerModel extends GeoModel<SkinWalkerEntity> {
-	private final ResourceLocation SLIM_MODEL = new ResourceLocation(SPBRevamped.MOD_ID, "geo/entity/skin_walker_slim.geo.json");
-	private final ResourceLocation DEFAULT_MODEL = new ResourceLocation(SPBRevamped.MOD_ID, "geo/entity/skin_walker_default.geo.json");
-	private final ResourceLocation FINAL_MODEL = new ResourceLocation(SPBRevamped.MOD_ID, "geo/entity/skin_walker_final_default.geo.json");
+	private final ResourceLocation SLIM_MODEL = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "geo/entity/skin_walker_slim.geo.json");
+	private final ResourceLocation DEFAULT_MODEL = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "geo/entity/skin_walker_default.geo.json");
+	private final ResourceLocation FINAL_MODEL = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "geo/entity/skin_walker_final_default.geo.json");
 
-	private final ResourceLocation PLACEHOLDER_TEXTURE = new ResourceLocation(SPBRevamped.MOD_ID, "textures/entity/skinwalker/placeholder.png");
+	private final ResourceLocation PLACEHOLDER_TEXTURE = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "textures/entity/skinwalker/placeholder.png");
 	private final ResourceLocation STEVE_TEXTURE = new ResourceLocation("textures/entity/player/wide/steve.png");
 
-	private final ResourceLocation ANIMATION = new ResourceLocation(SPBRevamped.MOD_ID, "animations/entity/skinwalker.animation.json");
+	private final ResourceLocation ANIMATION = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "animations/entity/skinwalker.animation.json");
 
 	@Override
 	public void setCustomAnimations(SkinWalkerEntity animatable, long instanceId, AnimationState<SkinWalkerEntity> animationState) {

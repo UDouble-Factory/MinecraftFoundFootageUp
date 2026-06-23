@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class ModItemGroups {
     public static final CreativeModeTab BACKROOMS_GROUP = Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB,
-            new ResourceLocation(SPBRevamped.MOD_ID, "spbrevamped"),
+            ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "spbrevamped"),
             FabricItemGroup.builder().title(Component.translatable("itemgroup.spbrevamped"))
                     .icon(() -> new ItemStack(ModBlocks.WALL_BLOCK)).displayItems((displayContext, entries) -> {
                         entries.accept(ModBlocks.VOID_BLOCK);

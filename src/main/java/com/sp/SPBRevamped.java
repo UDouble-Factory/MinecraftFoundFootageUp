@@ -15,19 +15,18 @@ import com.sp.init.*;
 import com.sp.item.ModItemGroups;
 import com.sp.mixininterfaces.NewServerProperties;
 import com.sp.networking.InitializePackets;
+import com.sp.networking.S2C.*;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -36,10 +35,9 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.bernie.geckolib.GeckoLib;
+import software.bernie.geckolib.GeckoLibConstants;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -49,8 +47,8 @@ public class SPBRevamped implements ModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger("spb-revamped");
 	public static final int FINAL_MAZE_SIZE = 5;
 
-	private static final UUID SLOW_SPEED_MODIFIER_ID = UUID.fromString("6a11099c-c3b8-4eba-9dad-f0c0bb997d35");
-	public static final AttributeModifier SLOW_SPEED_MODIFIER = new AttributeModifier(SLOW_SPEED_MODIFIER_ID, "SPBRevamped slow walk speed", -0.2f, AttributeModifier.Operation.MULTIPLY_TOTAL);
+	public static final AttributeModifier SLOW_SPEED_MODIFIER = new AttributeModifier(
+			ResourceLocation.fromNamespaceAndPath("spb-revamped", "slow_walk_speed"), -0.2, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
 	@Override
 	public void onInitialize() {
@@ -78,7 +76,7 @@ public class SPBRevamped implements ModInitializer {
 
 		// Thanks Bob Mowzie
 		GeckoLibUtil.addCustomBakedModelFactory(MOD_ID, new MowzieModelFactory());
-		GeckoLib.initialize();
+		GeckoLibConstants.init();
 
 		PrAnCommonClass.init();
 
@@ -88,8 +86,7 @@ public class SPBRevamped implements ModInitializer {
 		LOGGER.info("\"WOOOOOOOOOOOOOOOOOOOOOOOooooooooooooooooooooooooo..........\" -He said as he fell into the backrooms, never to be seen again.");
 
 		ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register(((player, origin, destination) -> {
-			FriendlyByteBuf buffer = PacketByteBufs.create();
-			ServerPlayNetworking.send(player, InitializePackets.RELOAD_LIGHTS, buffer);
+			ServerPlayNetworking.send(player, new ReloadLightsPayload());
 		}));
 
 		ServerPlayerEvents.AFTER_RESPAWN.register(((oldPlayer, newPlayer, alive) -> {
@@ -130,34 +127,21 @@ public class SPBRevamped implements ModInitializer {
 	}
 
 	public static void sendCameraShakePacket(ServerPlayer player, double speed, double trauma){
-		FriendlyByteBuf buffer = PacketByteBufs.create();
-		buffer.writeDouble(speed);
-		buffer.writeDouble(trauma);
-		ServerPlayNetworking.send(player, InitializePackets.SCREEN_SHAKE, buffer);
+		ServerPlayNetworking.send(player, new ScreenShakePayload(speed, trauma));
 	}
 
 	public static void sendBlackScreenPacket(ServerPlayer player, int duration, boolean shouldPauseSounds, boolean noEscape){
-		FriendlyByteBuf buffer = PacketByteBufs.create();
-		buffer.writeInt(duration);
-		buffer.writeBoolean(shouldPauseSounds);
-		buffer.writeBoolean(noEscape);
-		ServerPlayNetworking.send(player, InitializePackets.BLACK_SCREEN, buffer);
+		ServerPlayNetworking.send(player, new BlackScreenPayload(duration, shouldPauseSounds, noEscape));
 	}
 
 	public static void sendPersonalPlaySoundPacket(ServerPlayer player, SoundEvent sound, float volume, float pitch){
-		FriendlyByteBuf buffer = PacketByteBufs.create();
-		buffer.writeId(BuiltInRegistries.SOUND_EVENT.asHolderIdMap(), Holder.direct(sound), (packetByteBuf, soundEvent) -> soundEvent.writeToNetwork(packetByteBuf));
-		buffer.writeFloat(volume);
-		buffer.writeFloat(pitch);
-		ServerPlayNetworking.send(player, InitializePackets.SOUND, buffer);
+		ServerPlayNetworking.send(player, new SoundPayload(Holder.direct(sound), volume, pitch));
 	}
 
 	public static void sendLevelTransitionLightsOutPacket(ServerPlayer player, int time) {
 		PlayerComponent component = InitializeComponents.PLAYER.get(player);
 		component.setTeleporting(true);
-		FriendlyByteBuf buffer = PacketByteBufs.create();
-		buffer.writeInt(time);
-		ServerPlayNetworking.send(player, InitializePackets.LEVEL_TRANSITION_LIGHTSOUT, buffer);
+		ServerPlayNetworking.send(player, new LevelTransitionLightsOutPayload(time));
 	}
 
     public static int getExitSpawnRadius(Level world) {

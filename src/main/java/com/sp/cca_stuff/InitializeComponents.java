@@ -3,13 +3,13 @@ package com.sp.cca_stuff;
 import com.sp.SPBRevamped;
 import com.sp.entity.custom.SkinWalkerEntity;
 import com.sp.entity.custom.SmilerEntity;
-import dev.onyxstudios.cca.api.v3.component.ComponentKey;
-import dev.onyxstudios.cca.api.v3.component.ComponentRegistry;
-import dev.onyxstudios.cca.api.v3.entity.EntityComponentFactoryRegistry;
-import dev.onyxstudios.cca.api.v3.entity.EntityComponentInitializer;
-import dev.onyxstudios.cca.api.v3.entity.RespawnCopyStrategy;
-import dev.onyxstudios.cca.api.v3.world.WorldComponentFactoryRegistry;
-import dev.onyxstudios.cca.api.v3.world.WorldComponentInitializer;
+import org.ladysnake.cca.api.v3.component.ComponentKey;
+import org.ladysnake.cca.api.v3.component.ComponentRegistry;
+import org.ladysnake.cca.api.v3.entity.EntityComponentFactoryRegistry;
+import org.ladysnake.cca.api.v3.entity.EntityComponentInitializer;
+import org.ladysnake.cca.api.v3.entity.RespawnCopyStrategy;
+import org.ladysnake.cca.api.v3.world.WorldComponentFactoryRegistry;
+import org.ladysnake.cca.api.v3.world.WorldComponentInitializer;
 import net.minecraft.resources.ResourceLocation;
 
 public class InitializeComponents implements EntityComponentInitializer, WorldComponentInitializer {

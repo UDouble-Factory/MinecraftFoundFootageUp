@@ -1,5 +1,7 @@
 package com.sp.block.custom;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.sp.block.entity.CeilingLightBlockEntity;
 import com.sp.init.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -16,7 +18,11 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import org.jetbrains.annotations.Nullable;
 
 public class CeilingLight extends BaseEntityBlock {
+    public static final MapCodec<CeilingLight> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(propertiesCodec()).apply(instance, CeilingLight::new));
     public static final BooleanProperty STOPPED = BooleanProperty.create("stopped");
+
+    @Override
+    public MapCodec<CeilingLight> codec() { return CODEC; }
 
     public CeilingLight(Properties settings) {
         super(settings);

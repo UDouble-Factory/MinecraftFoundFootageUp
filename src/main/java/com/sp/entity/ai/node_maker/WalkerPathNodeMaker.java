@@ -2,10 +2,10 @@ package com.sp.entity.ai.node_maker;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.CollisionGetter;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.Node;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +18,7 @@ public class WalkerPathNodeMaker extends WalkNodeEvaluator {
         BlockPos hoverPos = findNearestSupportBlock(pos);
         if (hoverPos != null) {
             Node pathNode = this.getNode(hoverPos.getX(), hoverPos.getY() - HOVER_HEIGHT, hoverPos.getZ());
-            pathNode.type = BlockPathTypes.WALKABLE;
+            pathNode.type = PathType.WALKABLE;
             pathNode.costMalus = 0.0F;
             return pathNode;
         }
@@ -50,7 +50,7 @@ public class WalkerPathNodeMaker extends WalkNodeEvaluator {
         BlockPos pos = new BlockPos(x, y, z);
 
         // Check if current position has air
-        if (!this.level.getBlockState(pos).isAir()) {
+        if (!this.currentContext.level().getBlockState(pos).isAir()) {
             return null;
         }
 
@@ -60,7 +60,7 @@ public class WalkerPathNodeMaker extends WalkNodeEvaluator {
         }
 
         Node pathNode = this.getNode(x, y, z);
-        pathNode.type = BlockPathTypes.WALKABLE;
+        pathNode.type = PathType.WALKABLE;
         pathNode.costMalus = 0.0F;
 
         return pathNode;
@@ -78,12 +78,12 @@ public class WalkerPathNodeMaker extends WalkNodeEvaluator {
 
                     // Check if position one block below support has air
                     BlockPos airCheck = mutable.above();
-                    if (!this.level.getBlockState(airCheck).isAir()) {
+                    if (!this.currentContext.level().getBlockState(airCheck).isAir()) {
                         continue;
                     }
 
                     // Check if support block is solid
-                    if (isSolidSupport(this.level, mutable)) {
+                    if (isSolidSupport(this.currentContext.level(), mutable)) {
                         return true;
                     }
                 }
@@ -103,8 +103,8 @@ public class WalkerPathNodeMaker extends WalkNodeEvaluator {
                     for (int z = -radius; z <= radius; z++) {
                         mutable.set(start.getX() + x, start.getY() + y, start.getZ() + z);
 
-                        if (isSolidSupport(this.level, mutable) &&
-                                this.level.getBlockState(mutable.above()).isAir()) {
+                        if (isSolidSupport(this.currentContext.level(), mutable) &&
+                                this.currentContext.level().getBlockState(mutable.above()).isAir()) {
                             return mutable.immutable();
                         }
                     }
@@ -115,7 +115,7 @@ public class WalkerPathNodeMaker extends WalkNodeEvaluator {
         return null;
     }
 
-    private boolean isSolidSupport(BlockGetter world, BlockPos pos) {
+    private boolean isSolidSupport(CollisionGetter world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
         return !state.isAir() && state.isRedstoneConductor(world, pos);
     }

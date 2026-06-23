@@ -216,10 +216,10 @@ public class Level1MazeGenerator extends MazeGenerator {
             StructureTemplateManager structureTemplateManager = world.getServer().getStructureManager();
             Optional<StructureTemplate> optional;
 
-            ResourceLocation roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, "level1/pillars");
+            ResourceLocation roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level1/pillars");
 
             if (random.nextIntBetweenInclusive(0, 8) == 0) {
-                roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, "level1/storage");
+                roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "level1/storage");
             }
 
             StructurePlaceSettings structurePlacementData = new StructurePlaceSettings().setMirror(Mirror.NONE).setRotation(Rotation.NONE).setIgnoreEntities(true);

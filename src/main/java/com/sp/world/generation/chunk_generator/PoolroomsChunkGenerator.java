@@ -1,6 +1,6 @@
 package com.sp.world.generation.chunk_generator;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.sp.SPBRevamped;
 import com.sp.world.generation.maze_generator.PoolroomsMazeGenerator;
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 public final class PoolroomsChunkGenerator extends BackroomsChunkGenerator {
-    public static final Codec<PoolroomsChunkGenerator> CODEC = RecordCodecBuilder.create(
+    public static final MapCodec<PoolroomsChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
                             BiomeSource.CODEC.fieldOf("biome_source").forGetter(generator -> generator.biomeSource),
                             NoiseGeneratorSettings.CODEC.fieldOf("settings").forGetter(generator -> generator.settings)
@@ -63,7 +63,7 @@ public final class PoolroomsChunkGenerator extends BackroomsChunkGenerator {
 
 
         if(chunk.getPos().x == 0 && chunk.getPos().z == 0){
-            roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, "poolrooms/entrance");
+            roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "poolrooms/entrance");
             optional = structureTemplateManager.get(roomIdentifier);
 
             optional.ifPresent(structureTemplate -> structureTemplate.placeInWorld(
@@ -86,7 +86,7 @@ public final class PoolroomsChunkGenerator extends BackroomsChunkGenerator {
                 int exit = random.nextIntBetweenInclusive(0,4);
 
                 if(exit == 0){
-                    roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, "poolrooms/poolrooms_exit");
+                    roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "poolrooms/poolrooms_exit");
                     optional = structureTemplateManager.get(roomIdentifier);
 
                     optional.ifPresent(structureTemplate -> structureTemplate.placeInWorld(
@@ -98,7 +98,7 @@ public final class PoolroomsChunkGenerator extends BackroomsChunkGenerator {
                             2
                     ));
 
-                    roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, "poolrooms/poolrooms_exit2");
+                    roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "poolrooms/poolrooms_exit2");
                     optional = structureTemplateManager.get(roomIdentifier);
 
                     optional.ifPresent(structureTemplate -> structureTemplate.placeInWorld(
@@ -152,17 +152,17 @@ public final class PoolroomsChunkGenerator extends BackroomsChunkGenerator {
 
 
         if (w == 1)
-            roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_16x16_" + p);
+            roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_16x16_" + p);
         else if (w == 2)
-            roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_16x24_" + p);
+            roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_16x24_" + p);
         else if (w == 3)
-            roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_16x32_" + p);
+            roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_16x32_" + p);
         else if (w == 4)
-            roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_24x24_" + p);
+            roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_24x24_" + p);
         else if (w == 5)
-            roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_24x32_" + p);
+            roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_24x32_" + p);
         else if (w == 6)
-            roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_32x32_" + p);
+            roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_32x32_" + p);
 
         StructurePlaceSettings structurePlacementData = new StructurePlaceSettings();
         structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE).setIgnoreEntities(true);
@@ -194,10 +194,10 @@ public final class PoolroomsChunkGenerator extends BackroomsChunkGenerator {
             p = random.nextIntBetweenInclusive(1, 3);
             if (yy < xx) {
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.COUNTERCLOCKWISE_90).setIgnoreEntities(true);
-                roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_" + yy + "x" + xx + "_" + p);
+                roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_" + yy + "x" + xx + "_" + p);
             } else {
                 structurePlacementData.setMirror(Mirror.NONE).setRotation(Rotation.NONE).setIgnoreEntities(true);
-                roomIdentifier = new ResourceLocation(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_" + xx + "x" + yy + "_" + p);
+                roomIdentifier = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, levelDirectory + "/megaroom_" + xx + "x" + yy + "_" + p);
             }
             roomWidth = xx;
             roomHeight = yy;
@@ -242,7 +242,7 @@ public final class PoolroomsChunkGenerator extends BackroomsChunkGenerator {
 
     }
 
-    protected Codec<? extends ChunkGenerator> codec() {
+    protected MapCodec<? extends ChunkGenerator> codec() {
         return CODEC;
     }
 }

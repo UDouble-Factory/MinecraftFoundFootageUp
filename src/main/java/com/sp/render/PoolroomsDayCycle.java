@@ -2,7 +2,7 @@ package com.sp.render;
 
 import com.sp.init.BackroomsLevels;
 import com.sp.world.levels.custom.PoolroomsBackroomsLevel;
-import foundry.veil.api.client.util.Easings;
+import foundry.veil.api.client.util.Easing;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import org.joml.Vector3f;
@@ -35,7 +35,7 @@ public class PoolroomsDayCycle {
                     }
 
                     float timer = (float) (System.currentTimeMillis() - startTime) / 8000;
-                    dayTime = Mth.lerp(Easings.Easing.easeInOutQuad.ease(timer), prevDayTime, targetDayTime);
+                    dayTime = Mth.lerp(Easing.EASE_IN_OUT_QUAD.ease(timer), prevDayTime, targetDayTime);
 
                     if (timer >= 1.0) {
                         done = true;

@@ -1,5 +1,7 @@
 package com.sp.block.custom;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.sp.block.entity.EmergencyLightBlockEntity;
 import com.sp.init.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -19,9 +21,13 @@ import net.minecraft.world.level.block.state.properties.*;
 import org.jetbrains.annotations.Nullable;
 
 public class EmergencyLightBlock extends BaseEntityBlock {
+    public static final MapCodec<EmergencyLightBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(propertiesCodec()).apply(instance, EmergencyLightBlock::new));
     public static final BooleanProperty RED_LIGHT = BooleanProperty.create("red_light");
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final EnumProperty<AttachFace> FACE = BlockStateProperties.ATTACH_FACE;
+
+    @Override
+    public MapCodec<EmergencyLightBlock> codec() { return CODEC; }
 
     public EmergencyLightBlock(Properties settings) {
         super(settings);
