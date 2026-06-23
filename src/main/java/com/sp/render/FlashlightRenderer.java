@@ -4,9 +4,9 @@ import com.sp.cca_stuff.InitializeComponents;
 import com.sp.cca_stuff.PlayerComponent;
 import foundry.veil.api.client.render.VeilRenderSystem;
 import foundry.veil.api.client.render.deferred.light.AreaLight;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 
 import java.util.ArrayList;
@@ -15,19 +15,19 @@ import java.util.List;
 
 
 public class FlashlightRenderer {
-    private final MinecraftClient client;
-    private final HashMap<AbstractClientPlayerEntity, ArrayList<AreaLight>> flashLightList2;
+    private final Minecraft client;
+    private final HashMap<AbstractClientPlayer, ArrayList<AreaLight>> flashLightList2;
 
     public FlashlightRenderer(){
-        this.client = MinecraftClient.getInstance();
+        this.client = Minecraft.getInstance();
         this.flashLightList2 = new HashMap<>();
     }
 
     public void renderFlashlightForEveryPlayer(float partialTicks) {
-        if(client.world != null) {
-            List<AbstractClientPlayerEntity> playerList = client.world.getPlayers();
+        if(client.level != null) {
+            List<AbstractClientPlayer> playerList = client.level.players();
 
-            for (AbstractClientPlayerEntity player : playerList) {
+            for (AbstractClientPlayer player : playerList) {
                 if (player != null) {
                     if(player.isSpectator() && !player.equals(client.player)){
                         tryToRemoveFlashlight(player);
@@ -35,16 +35,16 @@ public class FlashlightRenderer {
                     }
                     PlayerComponent playerComponent = InitializeComponents.PLAYER.get(player);
                     if (playerComponent.isFlashLightOn()) {
-                        Vec3d playerPos = player.getCameraPosVec(partialTicks);
+                        Vec3 playerPos = player.getEyePosition(partialTicks);
                         if (!flashLightList2.containsKey(player)) {
                             AreaLight areaLight = new AreaLight();
                             AreaLight areaLight2 = new AreaLight();
-                            Quaternionf orientation = new Quaternionf().rotateXYZ((float) -Math.toRadians(player.getPitch(partialTicks)), (float) Math.toRadians(player.getYaw(partialTicks)), 0.0f);
+                            Quaternionf orientation = new Quaternionf().rotateXYZ((float) -Math.toRadians(player.getViewXRot(partialTicks)), (float) Math.toRadians(player.getViewYRot(partialTicks)), 0.0f);
                             VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().addLight(areaLight
                                     .setBrightness(1f)
                                     .setDistance(25f)
                                     .setSize(0, 0)
-                                    .setPosition(playerPos.getX(), playerPos.getY(), playerPos.getZ())
+                                    .setPosition(playerPos.x(), playerPos.y(), playerPos.z())
                                     .setOrientation(orientation)
                             );
                             VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().addLight(areaLight2
@@ -52,7 +52,7 @@ public class FlashlightRenderer {
                                     .setAngle(0.25f)
                                     .setDistance(25f)
                                     .setSize(0, 0)
-                                    .setPosition(playerPos.getX(), playerPos.getY(), playerPos.getZ())
+                                    .setPosition(playerPos.x(), playerPos.y(), playerPos.z())
                                     .setOrientation(orientation)
                             );
                             ArrayList<AreaLight> list = new ArrayList<>();
@@ -63,11 +63,11 @@ public class FlashlightRenderer {
                             ArrayList<AreaLight> areaLightList = flashLightList2.get(player);
 
                             for(AreaLight areaLights : areaLightList) {
-                                Quaternionf currentRot = new Quaternionf().rotateXYZ((float) -Math.toRadians(player.getPitch(partialTicks)), (float) Math.toRadians(player.getYaw(partialTicks)), 0.0f);
+                                Quaternionf currentRot = new Quaternionf().rotateXYZ((float) -Math.toRadians(player.getViewXRot(partialTicks)), (float) Math.toRadians(player.getViewYRot(partialTicks)), 0.0f);
                                 //*Fix for replay mod
-                                float alpha = client.player.isSpectator() ? 1.0f : 0.7f * client.getLastFrameDuration();
+                                float alpha = client.player.isSpectator() ? 1.0f : 0.7f * client.getDeltaFrameTime();
                                 areaLights.getOrientation().slerp(currentRot, alpha);
-                                areaLights.setPosition(playerPos.getX(), playerPos.getY(), playerPos.getZ());
+                                areaLights.setPosition(playerPos.x(), playerPos.y(), playerPos.z());
                             }
                         }
                     } else {
@@ -78,7 +78,7 @@ public class FlashlightRenderer {
         }
     }
 
-    public void tryToRemoveFlashlight(AbstractClientPlayerEntity player){
+    public void tryToRemoveFlashlight(AbstractClientPlayer player){
         if (flashLightList2.containsKey(player) && flashLightList2.get(player) != null) {
             ArrayList<AreaLight> areaLightList = flashLightList2.get(player);
             for(AreaLight areaLights : areaLightList){

@@ -1,32 +1,32 @@
 package com.sp.block.client.renderer;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.sp.block.custom.FluorescentLightBlock;
 import com.sp.block.entity.FluorescentLightBlockEntity;
 import com.sp.compat.modmenu.ConfigStuff;
 import com.sp.render.RenderLayers;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Direction;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.Direction;
 import org.joml.Matrix4f;
 
 public class FluorescentLightBlockEntityRenderer implements BlockEntityRenderer<FluorescentLightBlockEntity> {
-    public FluorescentLightBlockEntityRenderer(BlockEntityRendererFactory.Context context){
+    public FluorescentLightBlockEntityRenderer(BlockEntityRendererProvider.Context context){
 
     }
 
     @Override
-    public void render(FluorescentLightBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        boolean blackout = entity.getCurrentState().get(FluorescentLightBlock.BLACKOUT);
-        boolean on = entity.getCurrentState().get(FluorescentLightBlock.ON);
+    public void render(FluorescentLightBlockEntity entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+        boolean blackout = entity.getCurrentState().getValue(FluorescentLightBlock.BLACKOUT);
+        boolean on = entity.getCurrentState().getValue(FluorescentLightBlock.ON);
 
         //don't render if blackout is active
         if(blackout || !on) return;
 
-        Matrix4f matrix4f = matrices.peek().getPositionMatrix();
+        Matrix4f matrix4f = matrices.last().pose();
         this.renderCube(entity, matrix4f, vertexConsumers.getBuffer(this.getLayer()));
     }
 
@@ -40,18 +40,18 @@ public class FluorescentLightBlockEntityRenderer implements BlockEntityRenderer<
     }
 
     private void renderFace(FluorescentLightBlockEntity entity, Matrix4f matrix, VertexConsumer buffer, float f, float g, float h, float i, float j, float k, float l, float m, Direction direction) {
-            buffer.vertex(matrix, f, h, j).next();
-            buffer.vertex(matrix, g, h, k).next();
-            buffer.vertex(matrix, g, i, l).next();
-            buffer.vertex(matrix, f, i, m).next();
+            buffer.vertex(matrix, f, h, j).endVertex();
+            buffer.vertex(matrix, g, h, k).endVertex();
+            buffer.vertex(matrix, g, i, l).endVertex();
+            buffer.vertex(matrix, f, i, m).endVertex();
     }
 
-    protected RenderLayer getLayer() {
+    protected RenderType getLayer() {
         return RenderLayers.FLUORESCENT_LIGHT;
     }
 
     @Override
-    public int getRenderDistance() {
+    public int getViewDistance() {
         return (int) ConfigStuff.getLightRenderDistance();
     }
 }

@@ -1,9 +1,9 @@
 package com.sp.mixininterfaces;
 
-import net.minecraft.client.gl.GlUniform;
+import com.mojang.blaze3d.shaders.Uniform;
 
 public interface uniformTest {
-    GlUniform getWarpAngle();
-    GlUniform getAtlasAspectRatio();
+    Uniform getWarpAngle();
+    Uniform getAtlasAspectRatio();
 
 }

@@ -5,10 +5,10 @@ import com.sp.cca_stuff.PlayerComponent;
 import com.sp.cca_stuff.SkinWalkerComponent;
 import com.sp.entity.custom.SkinWalkerEntity;
 import com.sp.init.ModSounds;
-import net.minecraft.entity.ai.TargetPredicate;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.predicate.entity.EntityPredicates;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
 
@@ -23,12 +23,12 @@ public class FinalFormIdleGoal extends Goal {
         this.entity = entity;
         this.component = InitializeComponents.SKIN_WALKER.get(entity);
         this.chance = chance;
-        this.maxIdleActionCoolDown = toGoalTicks(cooldown);
+        this.maxIdleActionCoolDown = reducedTickDelay(cooldown);
     }
 
 
     @Override
-    public boolean canStart() {
+    public boolean canUse() {
         if(this.component.isInTrueForm() && !this.component.isNoticing()){
             if(this.entity.getTarget() == null){
                 return true;
@@ -50,17 +50,17 @@ public class FinalFormIdleGoal extends Goal {
 
     @Override
     public void tick() {
-        if(!this.entity.getWorld().isClient) {
-            List<PlayerEntity> playerEntityList = this.entity.getWorld().getPlayers(
-                    TargetPredicate.DEFAULT
-                            .ignoreDistanceScalingFactor()
-                            .ignoreVisibility()
-                            .setBaseMaxDistance(100)
-                            .setPredicate(EntityPredicates.EXCEPT_CREATIVE_OR_SPECTATOR::test),
+        if(!this.entity.level().isClientSide) {
+            List<Player> playerEntityList = this.entity.level().getNearbyPlayers(
+                    TargetingConditions.DEFAULT
+                            .ignoreInvisibilityTesting()
+                            .ignoreLineOfSight()
+                            .range(100)
+                            .selector(EntitySelector.NO_CREATIVE_OR_SPECTATOR::test),
                     this.entity,
-                    this.entity.getBoundingBox().expand(100));
+                    this.entity.getBoundingBox().inflate(100));
 
-            for (PlayerEntity player : playerEntityList) {
+            for (Player player : playerEntityList) {
                 PlayerComponent playerComponent = InitializeComponents.PLAYER.get(player);
                 if (playerComponent.isVisibleToEntity()) {
                     this.entity.noticePlayer(player);
@@ -72,7 +72,7 @@ public class FinalFormIdleGoal extends Goal {
         if(this.idleActionCoolDown > 0){
             this.idleActionCoolDown--;
 
-        } else if(this.entity.getRandom().nextInt(toGoalTicks(this.chance)) == 0){
+        } else if(this.entity.getRandom().nextInt(reducedTickDelay(this.chance)) == 0){
             if(this.entity.getRandom().nextBoolean()){
                 this.entity.playSound(ModSounds.SKINWALKER_AMBIENCE, 10.0f, 1.0f);
             } else {

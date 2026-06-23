@@ -1,16 +1,16 @@
 package com.sp.mixin.respawnsystem;
 
 import com.sp.init.BackroomsLevels;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -25,77 +25,77 @@ import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 import java.util.Optional;
 
-@Mixin(PlayerManager.class)
+@Mixin(PlayerList.class)
 public class PlayerManagerMixin {
 
     @Shadow @Final private MinecraftServer server;
 
-    @Unique ServerPlayerEntity targetPlayer;
+    @Unique ServerPlayer targetPlayer;
 
-    @Inject(method = "respawnPlayer", at = @At("HEAD"))
-    private void setTargetPlayer(ServerPlayerEntity player, boolean alive, CallbackInfoReturnable<ServerPlayerEntity> cir){
+    @Inject(method = "respawn", at = @At("HEAD"))
+    private void setTargetPlayer(ServerPlayer player, boolean alive, CallbackInfoReturnable<ServerPlayer> cir){
         this.targetPlayer = player;
     }
 
-    @Redirect(method = "respawnPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;getSpawnPointPosition()Lnet/minecraft/util/math/BlockPos;"))
-    private BlockPos setSpawnPointPos(ServerPlayerEntity instance){
-        if(BackroomsLevels.isInBackrooms(targetPlayer.getWorld().getRegistryKey())) {
-            return targetPlayer.getLastDeathPos().isPresent() ? targetPlayer.getLastDeathPos().get().getPos() : instance.getSpawnPointPosition();
+    @Redirect(method = "respawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;getRespawnPosition()Lnet/minecraft/core/BlockPos;"))
+    private BlockPos setSpawnPointPos(ServerPlayer instance){
+        if(BackroomsLevels.isInBackrooms(targetPlayer.level().dimension())) {
+            return targetPlayer.getLastDeathLocation().isPresent() ? targetPlayer.getLastDeathLocation().get().pos() : instance.getRespawnPosition();
         }
-        return instance.getSpawnPointPosition();
+        return instance.getRespawnPosition();
     }
 
 
-    @Redirect(method = "respawnPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getWorld(Lnet/minecraft/registry/RegistryKey;)Lnet/minecraft/server/world/ServerWorld;"))
-    private @Nullable ServerWorld getCurrentWorld(MinecraftServer instance, RegistryKey<World> key){
-        if(BackroomsLevels.isInBackrooms(targetPlayer.getWorld().getRegistryKey())) {
-            return instance.getWorld(targetPlayer.getWorld().getRegistryKey());
+    @Redirect(method = "respawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getLevel(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/server/level/ServerLevel;"))
+    private @Nullable ServerLevel getCurrentWorld(MinecraftServer instance, ResourceKey<Level> key){
+        if(BackroomsLevels.isInBackrooms(targetPlayer.level().dimension())) {
+            return instance.getLevel(targetPlayer.level().dimension());
         }
 
-        return instance.getWorld(key);
+        return instance.getLevel(key);
     }
 
 
 
-    @Redirect(method = "respawnPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;findRespawnPosition(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/BlockPos;FZZ)Ljava/util/Optional;"))
-    private Optional<Vec3d> respawn(ServerWorld world, BlockPos pos, float angle, boolean forced, boolean alive){
-        if(BackroomsLevels.isInBackrooms(targetPlayer.getWorld().getRegistryKey())) {
-            if (targetPlayer.getLastDeathPos().isPresent()) {
-                Vec3d lastDeathPos = targetPlayer.getLastDeathPos().get().getPos().toCenterPos();
+    @Redirect(method = "respawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;findRespawnPositionAndUseSpawnBlock(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;FZZ)Ljava/util/Optional;"))
+    private Optional<Vec3> respawn(ServerLevel world, BlockPos pos, float angle, boolean forced, boolean alive){
+        if(BackroomsLevels.isInBackrooms(targetPlayer.level().dimension())) {
+            if (targetPlayer.getLastDeathLocation().isPresent()) {
+                Vec3 lastDeathPos = targetPlayer.getLastDeathLocation().get().pos().getCenter();
                 if(lastDeathPos.y < 0){
-                    return Optional.of(BlockPos.ofFloored(BackroomsLevels.getCurrentLevelsOrigin(world.getRegistryKey())).toCenterPos());
+                    return Optional.of(BlockPos.containing(BackroomsLevels.getCurrentLevelsOrigin(world.dimension())).getCenter());
                 }
-                return Optional.of(targetPlayer.getLastDeathPos().get().getPos().toCenterPos());
+                return Optional.of(targetPlayer.getLastDeathLocation().get().pos().getCenter());
             }
         }
-        return PlayerEntity.findRespawnPosition(world, pos, angle, forced, alive);
+        return Player.findRespawnPositionAndUseSpawnBlock(world, pos, angle, forced, alive);
     }
 
 
-    @ModifyArgs(method = "respawnPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;refreshPositionAndAngles(DDDFF)V"))
+    @ModifyArgs(method = "respawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;moveTo(DDDFF)V"))
     private void setSpawnAngle(Args args){
-        if(BackroomsLevels.isInBackrooms(targetPlayer.getWorld().getRegistryKey())) {
-            args.set(3, targetPlayer.getYaw());
-            args.set(4, targetPlayer.getPitch());
+        if(BackroomsLevels.isInBackrooms(targetPlayer.level().dimension())) {
+            args.set(3, targetPlayer.getYRot());
+            args.set(4, targetPlayer.getXRot());
         }
     }
 
 
-    @ModifyArgs(method = "respawnPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;setSpawnPoint(Lnet/minecraft/registry/RegistryKey;Lnet/minecraft/util/math/BlockPos;FZZ)V"))
+    @ModifyArgs(method = "respawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;setRespawnPosition(Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/core/BlockPos;FZZ)V"))
     private void respawn2(Args args){
-        if(BackroomsLevels.isInBackrooms(targetPlayer.getWorld().getRegistryKey())) {
-            ServerWorld currentWorld = this.server.getWorld(targetPlayer.getWorld().getRegistryKey());
-            Optional<GlobalPos> lastDeathPos = targetPlayer.getLastDeathPos();
+        if(BackroomsLevels.isInBackrooms(targetPlayer.level().dimension())) {
+            ServerLevel currentWorld = this.server.getLevel(targetPlayer.level().dimension());
+            Optional<GlobalPos> lastDeathPos = targetPlayer.getLastDeathLocation();
 
             if (currentWorld != null) {
                 if (lastDeathPos.isPresent()) {
-                    BlockPos pos = lastDeathPos.get().getPos();
+                    BlockPos pos = lastDeathPos.get().pos();
 
                     if (pos.getY() < 0){
-                        pos = BlockPos.ofFloored(BackroomsLevels.getCurrentLevelsOrigin(currentWorld.getRegistryKey()));
+                        pos = BlockPos.containing(BackroomsLevels.getCurrentLevelsOrigin(currentWorld.dimension()));
                     }
 
-                    args.set(0, currentWorld.getRegistryKey());
+                    args.set(0, currentWorld.dimension());
                     args.set(1, pos);
                     args.set(2, args.get(2));
                     args.set(3, args.get(3));

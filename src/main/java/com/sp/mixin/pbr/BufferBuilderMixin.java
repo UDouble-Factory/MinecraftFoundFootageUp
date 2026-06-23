@@ -1,12 +1,12 @@
 package com.sp.mixin.pbr;
 
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.sp.mixininterfaces.BlockMaterial;
 import com.sp.render.VertexFormats;
 import com.sp.render.pbr.BlockIdMap;
 import com.sp.render.pbr.PbrRegistry;
-import net.minecraft.block.Block;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.VertexFormat;
+import net.minecraft.world.level.block.Block;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -27,7 +27,7 @@ public abstract class BufferBuilderMixin implements BlockMaterial {
     @Shadow public abstract void nextElement();
 
     @Shadow private ByteBuffer buffer;
-    @Shadow private int elementOffset;
+    @Shadow private int nextElementByte;
 
     @Shadow public abstract void putFloat(int index, float value);
 
@@ -46,31 +46,31 @@ public abstract class BufferBuilderMixin implements BlockMaterial {
         currentFormat = format;
 
         //Rendering a normal block. Redirect it to include the Custom Material
-        if (format == net.minecraft.client.render.VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL) {
-            return setRendering(com.sp.render.VertexFormats.BLOCKS);
+        if (format == com.mojang.blaze3d.vertex.DefaultVertexFormat.BLOCK) {
+            return setRendering(VertexFormats.BLOCKS);
         }
 
         //Rendering a PBR block. Redirect it to include the Zoom and resolution
-        if (format == com.sp.render.VertexFormats.PBR) {
-            return setRendering(com.sp.render.VertexFormats.PBR);
+        if (format == VertexFormats.PBR) {
+            return setRendering(VertexFormats.PBR);
         }
 
         return format;
     }
 
 
-    @Inject(method = "next", at = @At("HEAD"))
+    @Inject(method = "endVertex", at = @At("HEAD"))
     private void putBlockID(CallbackInfo ci){
         if (this.isRenderingBlock) {
 
             //Normal Block
-            if(currentFormat == com.sp.render.VertexFormats.BLOCKS) {
-                this.buffer.putInt(this.elementOffset, BlockIdMap.getBlockID(this.currentBlock));
+            if(currentFormat == VertexFormats.BLOCKS) {
+                this.buffer.putInt(this.nextElementByte, BlockIdMap.getBlockID(this.currentBlock));
                 this.nextElement();
             }
 
             //PBR block
-            else if(this.currentFormat == com.sp.render.VertexFormats.PBR){
+            else if(this.currentFormat == VertexFormats.PBR){
                 PbrRegistry.PbrMaterial material = PbrRegistry.getMaterial(this.currentBlock);
                 if (material == null) {
                     return;
@@ -94,7 +94,7 @@ public abstract class BufferBuilderMixin implements BlockMaterial {
 
     @Unique
     private void putInt(int offset, int value){
-        this.buffer.putInt(this.elementOffset + offset, value);
+        this.buffer.putInt(this.nextElementByte + offset, value);
     }
 
     @Unique

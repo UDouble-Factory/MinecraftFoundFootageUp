@@ -3,12 +3,12 @@ package com.sp.render.camera;
 import com.sp.SPBRevampedClient;
 import com.sp.compat.modmenu.ConfigStuff;
 import com.sp.util.MathStuff;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.noise.PerlinNoiseSampler;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.levelgen.synth.ImprovedNoise;
 
 public class CameraShake {
     public double trauma;
@@ -17,7 +17,7 @@ public class CameraShake {
     private double noiseSpeedGoal;
     private double noiseY;
     private double amplitude;
-    private PerlinNoiseSampler noiseSampler;
+    private ImprovedNoise noiseSampler;
     private float cameraZRot;
 
     public CameraShake(){
@@ -25,25 +25,25 @@ public class CameraShake {
         this.noiseSpeed = 0.1;
         this.noiseY = 0;
         this.amplitude = 5;
-        this.noiseSampler = new PerlinNoiseSampler(Random.create());
+        this.noiseSampler = new ImprovedNoise(RandomSource.create());
         this.cameraZRot = 0.0f;
     }
 
     public void tick(Camera camera) {
         if (ConfigStuff.enableRealCamera && !SPBRevampedClient.getCutsceneManager().isPlaying) {
-            float frameDelta = MinecraftClient.getInstance().getLastFrameDuration();
+            float frameDelta = Minecraft.getInstance().getDeltaFrameTime();
             if (this.noiseY >= 1000) {
                 this.noiseY = 0;
             }
 
-            PlayerEntity player = MinecraftClient.getInstance().player;
+            Player player = Minecraft.getInstance().player;
             if (player != null) {
-                float playerSpeed = (player.horizontalSpeed - player.prevHorizontalSpeed) * 6;
+                float playerSpeed = (player.walkDist - player.walkDistO) * 6;
 
                 if (player.isFallFlying()) playerSpeed /= 6; // https://github.com/SpacePotatoee/MinecraftFoundFootage/issues/101
 
-                this.traumaGoal = MathHelper.clamp(0.6 * playerSpeed, 0.5, 1.5f);
-                this.noiseSpeedGoal = MathHelper.clamp(0.25 * playerSpeed, 0.1, 1.0f);
+                this.traumaGoal = Mth.clamp(0.6 * playerSpeed, 0.5, 1.5f);
+                this.noiseSpeedGoal = Mth.clamp(0.25 * playerSpeed, 0.1, 1.0f);
                 this.amplitude = 4;
 
                 this.trauma = Math.max(MathStuff.Lerp((float) this.trauma, (float) this.traumaGoal, 0.93f, frameDelta), 0.5);
@@ -51,11 +51,11 @@ public class CameraShake {
 
                 this.noiseY += (this.noiseSpeed * frameDelta);
 
-                double pitchOffset = this.amplitude * this.getShakeIntensity() * (this.noiseSampler.sample(1, this.noiseY, 0));
-                double yawOffset = this.amplitude * this.getShakeIntensity() * (this.noiseSampler.sample(73, this.noiseY, 0));
-                double rollOffset = this.amplitude * this.getShakeIntensity() * (this.noiseSampler.sample(146, this.noiseY, 0));
+                double pitchOffset = this.amplitude * this.getShakeIntensity() * (this.noiseSampler.noise(1, this.noiseY, 0));
+                double yawOffset = this.amplitude * this.getShakeIntensity() * (this.noiseSampler.noise(73, this.noiseY, 0));
+                double rollOffset = this.amplitude * this.getShakeIntensity() * (this.noiseSampler.noise(146, this.noiseY, 0));
 
-                camera.setRotation((float) (camera.getYaw() + yawOffset), (float) (camera.getPitch() + pitchOffset));
+                camera.setRotation((float) (camera.getYRot() + yawOffset), (float) (camera.getXRot() + pitchOffset));
                 this.cameraZRot = (float) rollOffset * 2;
             }
         }

@@ -1,8 +1,8 @@
 package com.sp.mixin.hudandresolution;
 
+import com.mojang.blaze3d.platform.Monitor;
+import com.mojang.blaze3d.platform.VideoMode;
 import com.sp.render.VhsAspectRatio;
-import net.minecraft.client.util.Monitor;
-import net.minecraft.client.util.VideoMode;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -19,7 +19,7 @@ public class MonitorMixin {
     @Shadow @Final private List<VideoMode> videoModes;
     @Unique private static Integer maxRefreshRate = null;
 
-    @Inject(method = "populateVideoModes", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwGetMonitorPos(J[I[I)V"))
+    @Inject(method = "refreshVideoModes", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwGetMonitorPos(J[I[I)V"))
     private void get43AspectRatios(CallbackInfo ci){
         //Find the highest refresh rate
         for(VideoMode videoMode : this.videoModes){

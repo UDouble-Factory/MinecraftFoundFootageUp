@@ -2,6 +2,7 @@ package com.sp.render.grass;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import com.sp.SPBRevamped;
 import com.sp.SPBRevampedClient;
 import com.sp.compat.modmenu.ConfigStuff;
@@ -12,21 +13,16 @@ import foundry.veil.api.client.render.VeilRenderer;
 import foundry.veil.api.client.render.framebuffer.AdvancedFbo;
 import foundry.veil.api.client.render.framebuffer.VeilFramebuffers;
 import foundry.veil.api.client.render.shader.program.ShaderProgram;
-import net.minecraft.client.gl.VertexBuffer;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormatElement;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.joml.Vector4fc;
 import org.lwjgl.opengl.GL43;
 
 import java.nio.ByteBuffer;
 
-import static net.minecraft.client.render.VertexFormats.NORMAL_ELEMENT;
-import static net.minecraft.client.render.VertexFormats.POSITION_ELEMENT;
-import static net.minecraft.util.math.MathHelper.floor;
-import static net.minecraft.util.math.MathHelper.sqrt;
+import static com.mojang.blaze3d.vertex.DefaultVertexFormat.ELEMENT_NORMAL;
+import static com.mojang.blaze3d.vertex.DefaultVertexFormat.ELEMENT_POSITION;
+import static net.minecraft.util.Mth.floor;
+import static net.minecraft.util.Mth.sqrt;
 import static org.lwjgl.opengl.GL15C.glBindBuffer;
 import static org.lwjgl.opengl.GL15C.glGenBuffers;
 import static org.lwjgl.opengl.GL42C.*;
@@ -35,10 +31,10 @@ import static org.lwjgl.opengl.GL43C.glDispatchCompute;
 
 public class GrassRenderer {
     VertexBuffer vertexBuffer;
-    private static final Identifier shaderPath = new Identifier(SPBRevamped.MOD_ID, "grass/grass");
-    private static final Identifier windTexture = new Identifier(SPBRevamped.MOD_ID, "textures/shaders/puddle_noise.png");
+    private static final ResourceLocation shaderPath = new ResourceLocation(SPBRevamped.MOD_ID, "grass/grass");
+    private static final ResourceLocation windTexture = new ResourceLocation(SPBRevamped.MOD_ID, "textures/shaders/puddle_noise.png");
 
-    private static final Identifier computeShaderPath = new Identifier(SPBRevamped.MOD_ID, "grass/compute/positions");
+    private static final ResourceLocation computeShaderPath = new ResourceLocation(SPBRevamped.MOD_ID, "grass/compute/positions");
     private final int positionsVbo;
     private final int indirectVbo;
 
@@ -57,22 +53,22 @@ public class GrassRenderer {
 
     public static final VertexFormat POSITION_NORMAL = new VertexFormat(
             ImmutableMap.<String, VertexFormatElement>builder()
-                    .put("Position", POSITION_ELEMENT)
-                    .put("Color", NORMAL_ELEMENT)
+                    .put("Position", ELEMENT_POSITION)
+                    .put("Color", ELEMENT_NORMAL)
                     .build()
     );
 
     public GrassRenderer() {
         this.vertexBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBuffer();
+        Tesselator tessellator = Tesselator.getInstance();
+        BufferBuilder bufferBuilder = tessellator.getBuilder();
 
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, POSITION_NORMAL);
+        bufferBuilder.begin(VertexFormat.Mode.QUADS, POSITION_NORMAL);
 
 
         this.createGrassModel(bufferBuilder);
 
-        BufferBuilder.BuiltBuffer builtBuffer = bufferBuilder.end();
+        BufferBuilder.RenderedBuffer builtBuffer = bufferBuilder.end();
 
         this.vertexBuffer.bind();
         this.vertexBuffer.upload(builtBuffer);
@@ -100,10 +96,10 @@ public class GrassRenderer {
             }
 
             this.vertexBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
-            Tessellator tessellator = Tessellator.getInstance();
-            BufferBuilder bufferBuilder = tessellator.getBuffer();
+            Tesselator tessellator = Tesselator.getInstance();
+            BufferBuilder bufferBuilder = tessellator.getBuilder();
 
-            bufferBuilder.begin(VertexFormat.DrawMode.QUADS, POSITION_NORMAL);
+            bufferBuilder.begin(VertexFormat.Mode.QUADS, POSITION_NORMAL);
 
             this.createGrassModel(bufferBuilder);
 
@@ -263,15 +259,15 @@ public class GrassRenderer {
         float xStep = 0.1f/segments;
 
         for(int i = 0; i < segments; i++){
-            bufferBuilder.vertex(0.6-xStep*(i+1),getGrassHeight()/segments*(i+1),0).normal(0,0,1).next();
-            bufferBuilder.vertex(0.4+xStep*(i+1),getGrassHeight()/segments*(i+1),0).normal(0,0,1).next();
-            bufferBuilder.vertex(0.4+xStep*(i),  getGrassHeight()/segments*i,    0).normal(0,0,1).next();
-            bufferBuilder.vertex(0.6-xStep*(i),  getGrassHeight()/segments*i,    0).normal(0,0,1).next();
+            bufferBuilder.vertex(0.6-xStep*(i+1),getGrassHeight()/segments*(i+1),0).normal(0,0,1).endVertex();
+            bufferBuilder.vertex(0.4+xStep*(i+1),getGrassHeight()/segments*(i+1),0).normal(0,0,1).endVertex();
+            bufferBuilder.vertex(0.4+xStep*(i),  getGrassHeight()/segments*i,    0).normal(0,0,1).endVertex();
+            bufferBuilder.vertex(0.6-xStep*(i),  getGrassHeight()/segments*i,    0).normal(0,0,1).endVertex();
 
-            bufferBuilder.vertex(0.6-xStep*(i),  getGrassHeight()/segments*i,    0).normal(0,0,-1).next();
-            bufferBuilder.vertex(0.4+xStep*(i),  getGrassHeight()/segments*i,    0).normal(0,0,-1).next();
-            bufferBuilder.vertex(0.4+xStep*(i+1),getGrassHeight()/segments*(i+1),0).normal(0,0,-1).next();
-            bufferBuilder.vertex(0.6-xStep*(i+1),getGrassHeight()/segments*(i+1),0).normal(0,0,-1).next();
+            bufferBuilder.vertex(0.6-xStep*(i),  getGrassHeight()/segments*i,    0).normal(0,0,-1).endVertex();
+            bufferBuilder.vertex(0.4+xStep*(i),  getGrassHeight()/segments*i,    0).normal(0,0,-1).endVertex();
+            bufferBuilder.vertex(0.4+xStep*(i+1),getGrassHeight()/segments*(i+1),0).normal(0,0,-1).endVertex();
+            bufferBuilder.vertex(0.6-xStep*(i+1),getGrassHeight()/segments*(i+1),0).normal(0,0,-1).endVertex();
         }
     }
 

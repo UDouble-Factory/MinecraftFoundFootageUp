@@ -1,8 +1,8 @@
 package com.sp.render;
 
 import com.sp.util.MathStuff;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import org.joml.Vector3f;
 
 /**
@@ -23,7 +23,7 @@ public class SSAOSamples {
     }
 
     public static Vector3f[] generateSSAOSamples(){
-        Random random = Random.create();
+        RandomSource random = RandomSource.create();
         Vector3f[] list = new Vector3f[MaxSamples];
 
         for(int i = 0; i < MaxSamples; i++){
@@ -37,7 +37,7 @@ public class SSAOSamples {
             list[i].mul(MathStuff.randomFloat(0f, radius, random));
 
             float scale = Math.min(((float) i / MaxSamples) * 3f, 1.0f);
-            list[i].mul(MathHelper.lerp(scale, 0.0f, radius));
+            list[i].mul(Mth.lerp(scale, 0.0f, radius));
         }
         return list;
     }

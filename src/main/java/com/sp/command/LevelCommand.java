@@ -5,22 +5,22 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.sp.init.BackroomsLevels;
 import com.sp.world.levels.BackroomsLevel;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.TeleportTarget;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.portal.PortalInfo;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Optional;
 
 public class LevelCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> serverCommandSourceCommandDispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
+    public static void register(CommandDispatcher<CommandSourceStack> serverCommandSourceCommandDispatcher, CommandBuildContext commandRegistryAccess, Commands.CommandSelection registrationEnvironment) {
         serverCommandSourceCommandDispatcher.register(
-                CommandManager.literal("level")
-                        .requires(source -> source.hasPermissionLevel(2))
-                        .then(CommandManager.argument("level", StringArgumentType.word()).suggests(
+                Commands.literal("level")
+                        .requires(source -> source.hasPermission(2))
+                        .then(Commands.argument("level", StringArgumentType.word()).suggests(
                                 (context, builder) -> {
                                     for (BackroomsLevel backroomsLevel : BackroomsLevels.BACKROOMS_LEVELS) {
                                         builder.suggest(backroomsLevel.getLevelId());
@@ -34,12 +34,12 @@ public class LevelCommand {
                             if (optionalBackroomsLevel.isPresent()) {
                                 BackroomsLevel backroomsLevel = optionalBackroomsLevel.get();
 
-                                Entity entity = context.getSource().getEntityOrThrow();
+                                Entity entity = context.getSource().getEntityOrException();
 
-                                if (entity instanceof PlayerEntity player) {
+                                if (entity instanceof Player player) {
 
-                                    TeleportTarget target = new TeleportTarget(backroomsLevel.getSpawnPos(), Vec3d.ZERO, 0, 90);
-                                    FabricDimensions.teleport(player, context.getSource().getWorld().getServer().getWorld(backroomsLevel.getWorldKey()), target);
+                                    PortalInfo target = new PortalInfo(backroomsLevel.getSpawnPos(), Vec3.ZERO, 0, 90);
+                                    FabricDimensions.teleport(player, context.getSource().getLevel().getServer().getLevel(backroomsLevel.getWorldKey()), target);
                                 }
 
 

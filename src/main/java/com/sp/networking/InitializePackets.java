@@ -1,22 +1,24 @@
 package com.sp.networking;
 
 import com.sp.SPBRevamped;
-import com.sp.networking.C2S.*;
+import com.sp.networking.C2S.SeeActiveSkinwalkerSync;
+import com.sp.networking.C2S.SyncServerComponent;
+import com.sp.networking.C2S.TargetEntitySync;
 import com.sp.networking.S2C.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 public class InitializePackets {
-    public static final Identifier TARGET_ENTITY_SYNC = new Identifier(SPBRevamped.MOD_ID, "targ_ent");
-    public static final Identifier SEE_SKINWALKER_SYNC = new Identifier(SPBRevamped.MOD_ID, "see_skin");
-    public static final Identifier COMPONENT_SYNC = new Identifier(SPBRevamped.MOD_ID, "comp_sync");
+    public static final ResourceLocation TARGET_ENTITY_SYNC = new ResourceLocation(SPBRevamped.MOD_ID, "targ_ent");
+    public static final ResourceLocation SEE_SKINWALKER_SYNC = new ResourceLocation(SPBRevamped.MOD_ID, "see_skin");
+    public static final ResourceLocation COMPONENT_SYNC = new ResourceLocation(SPBRevamped.MOD_ID, "comp_sync");
 
-    public static final Identifier SCREEN_SHAKE = new Identifier(SPBRevamped.MOD_ID, "scr_shake");
-    public static final Identifier BLACK_SCREEN = new Identifier(SPBRevamped.MOD_ID, "blk_screen");
-    public static final Identifier RELOAD_LIGHTS = new Identifier(SPBRevamped.MOD_ID, "rl_lights");
-    public static final Identifier SOUND = new Identifier(SPBRevamped.MOD_ID, "snd");
-    public static final Identifier LEVEL_TRANSITION_LIGHTSOUT = new Identifier(SPBRevamped.MOD_ID, "ltos");
+    public static final ResourceLocation SCREEN_SHAKE = new ResourceLocation(SPBRevamped.MOD_ID, "scr_shake");
+    public static final ResourceLocation BLACK_SCREEN = new ResourceLocation(SPBRevamped.MOD_ID, "blk_screen");
+    public static final ResourceLocation RELOAD_LIGHTS = new ResourceLocation(SPBRevamped.MOD_ID, "rl_lights");
+    public static final ResourceLocation SOUND = new ResourceLocation(SPBRevamped.MOD_ID, "snd");
+    public static final ResourceLocation LEVEL_TRANSITION_LIGHTSOUT = new ResourceLocation(SPBRevamped.MOD_ID, "ltos");
 
     public static void registerC2SPackets() {
         ServerPlayNetworking.registerGlobalReceiver(TARGET_ENTITY_SYNC, TargetEntitySync::receive);

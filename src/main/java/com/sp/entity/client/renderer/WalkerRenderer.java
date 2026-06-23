@@ -1,18 +1,18 @@
 package com.sp.entity.client.renderer;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.sp.SPBRevamped;
 import com.sp.entity.client.debug.IKDebugRenderLayer;
 import com.sp.entity.client.model.WalkerModel;
 import com.sp.entity.custom.WalkerEntity;
 import com.sp.entity.ik.model.GeckoLib.GeoModelAccessor;
 import com.sp.entity.ik.model.GeckoLib.MowzieGeoBone;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
@@ -22,24 +22,24 @@ import software.bernie.geckolib.renderer.DynamicGeoEntityRenderer;
 import software.bernie.geckolib.util.RenderUtils;
 
 public class WalkerRenderer extends DynamicGeoEntityRenderer<WalkerEntity> {
-    private final Identifier EYES_TEXTURE = new Identifier(SPBRevamped.MOD_ID, "textures/entity/walker/walker.png");
+    private final ResourceLocation EYES_TEXTURE = new ResourceLocation(SPBRevamped.MOD_ID, "textures/entity/walker/walker.png");
 
-    public WalkerRenderer(EntityRendererFactory.Context renderManager) {
+    public WalkerRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new WalkerModel());
         this.addRenderLayer(new IKDebugRenderLayer<>(this));
     }
 
     @Override
-    public void render(WalkerEntity entity, float entityYaw, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight) {
+    public void render(WalkerEntity entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
 
         entity.getModelPositions(entity, new GeoModelAccessor(this.model));
     }
 
     @Override
-    public void renderRecursively(MatrixStack poseStack, WalkerEntity animatable, GeoBone bone, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+    public void renderRecursively(PoseStack poseStack, WalkerEntity animatable, GeoBone bone, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         if (bone == null) return;
-        poseStack.push();
+        poseStack.pushPose();
         /*
         if (Objects.equals(bone.getName(), "root") && bone instanceof MowzieGeoBone mowzieGeoBone) {
             mowzieGeoBone.setForceMatrixTransform(true);
@@ -49,7 +49,7 @@ public class WalkerRenderer extends DynamicGeoEntityRenderer<WalkerEntity> {
          */
 
         if (bone instanceof MowzieGeoBone mowzieGeoBone && mowzieGeoBone.isForceMatrixTransform() && animatable != null) {
-            MatrixStack.Entry last = poseStack.peek();
+            PoseStack.Pose last = poseStack.last();
             double d0 = animatable.getX();
             double d1 = animatable.getY();
             double d2 = animatable.getZ();
@@ -57,8 +57,8 @@ public class WalkerRenderer extends DynamicGeoEntityRenderer<WalkerEntity> {
             matrix4f = matrix4f.translate(0, -0.01f, 0);
             matrix4f = matrix4f.translate((float) -d0, (float) -d1, (float) -d2);
             matrix4f = matrix4f.mul(bone.getWorldSpaceMatrix());
-            last.getPositionMatrix().mul(matrix4f);
-            last.getNormalMatrix().mul(bone.getWorldSpaceNormal());
+            last.pose().mul(matrix4f);
+            last.normal().mul(bone.getWorldSpaceNormal());
 
             RenderUtils.translateAwayFromPivotPoint(poseStack, bone);
         } else {
@@ -72,22 +72,22 @@ public class WalkerRenderer extends DynamicGeoEntityRenderer<WalkerEntity> {
 
             if (bone instanceof MowzieGeoBone mowzieGeoBone) {
                 if (!mowzieGeoBone.inheritRotation && !mowzieGeoBone.inheritTranslation) {
-                    poseStack.peek().getPositionMatrix().identity();
-                    poseStack.peek().getPositionMatrix().mul(this.entityRenderTranslations);
+                    poseStack.last().pose().identity();
+                    poseStack.last().pose().mul(this.entityRenderTranslations);
                 } else if (!mowzieGeoBone.inheritRotation) {
-                    Vector4f t = new Vector4f().mul(poseStack.peek().getPositionMatrix());
-                    poseStack.peek().getPositionMatrix().identity();
+                    Vector4f t = new Vector4f().mul(poseStack.last().pose());
+                    poseStack.last().pose().identity();
                     poseStack.translate(t.x, t.y, t.z);
                 } else if (!mowzieGeoBone.inheritTranslation) {
-                    MowzieGeoBone.removeMatrixTranslation(poseStack.peek().getPositionMatrix());
-                    poseStack.peek().getPositionMatrix().mul(this.entityRenderTranslations);
+                    MowzieGeoBone.removeMatrixTranslation(poseStack.last().pose());
+                    poseStack.last().pose().mul(this.entityRenderTranslations);
                 }
             }
 
             if (rotOverride) {
                 MowzieGeoBone mowzieGeoBone = (MowzieGeoBone) bone;
-                poseStack.peek().getPositionMatrix().mul(mowzieGeoBone.rotationOverride);
-                poseStack.peek().getNormalMatrix().mul(new Matrix3f(mowzieGeoBone.rotationOverride));
+                poseStack.last().pose().mul(mowzieGeoBone.rotationOverride);
+                poseStack.last().normal().mul(new Matrix3f(mowzieGeoBone.rotationOverride));
             } else {
                 RenderUtils.rotateMatrixAroundBone(poseStack, bone);
             }
@@ -95,12 +95,12 @@ public class WalkerRenderer extends DynamicGeoEntityRenderer<WalkerEntity> {
             RenderUtils.scaleMatrixForBone(poseStack, bone);
 
             if (bone.isTrackingMatrices()) {
-                Matrix4f poseState = new Matrix4f(poseStack.peek().getPositionMatrix());
+                Matrix4f poseState = new Matrix4f(poseStack.last().pose());
                 Matrix4f localMatrix = RenderUtils.invertAndMultiplyMatrices(poseState, this.entityRenderTranslations);
 
                 bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-                bone.setLocalSpaceMatrix(RenderUtils.translateMatrix(localMatrix, getPositionOffset(this.animatable, 1).toVector3f()));
-                bone.setWorldSpaceMatrix(RenderUtils.translateMatrix(new Matrix4f(localMatrix), this.animatable.getPos().toVector3f()));
+                bone.setLocalSpaceMatrix(RenderUtils.translateMatrix(localMatrix, getRenderOffset(this.animatable, 1).toVector3f()));
+                bone.setWorldSpaceMatrix(RenderUtils.translateMatrix(new Matrix4f(localMatrix), this.animatable.position().toVector3f()));
             }
 
             RenderUtils.translateAwayFromPivotPoint(poseStack, bone);
@@ -114,11 +114,11 @@ public class WalkerRenderer extends DynamicGeoEntityRenderer<WalkerEntity> {
 
         renderChildBones(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
 
-        poseStack.pop();
+        poseStack.popPose();
     }
 
     @Override
-    public void renderChildBones(MatrixStack poseStack, WalkerEntity animatable, GeoBone bone, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+    public void renderChildBones(PoseStack poseStack, WalkerEntity animatable, GeoBone bone, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         for (GeoBone childBone : bone.getChildBones()) {
             if (!bone.isHidingChildren() || (childBone instanceof MowzieGeoBone mowzieGeoBone && mowzieGeoBone.isDynamicJoint())) {
                 renderRecursively(poseStack, animatable, childBone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
@@ -126,17 +126,17 @@ public class WalkerRenderer extends DynamicGeoEntityRenderer<WalkerEntity> {
         }
     }
 
-    protected boolean boneRenderOverride(WalkerEntity animatable, MatrixStack poseStack, GeoBone bone, VertexConsumerProvider bufferSource) {
+    protected boolean boneRenderOverride(WalkerEntity animatable, PoseStack poseStack, GeoBone bone, MultiBufferSource bufferSource) {
         if (bone.getName().equals("eyes")) {
-            VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderLayer.getEyes(EYES_TEXTURE));
+            VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.eyes(EYES_TEXTURE));
 
             if (bone.isHidden())
                 return false;
 
             for (GeoCube cube : bone.getCubes()) {
-                poseStack.push();
-                renderCube(poseStack, cube, vertexConsumer, 15728640, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, 1.0F);
-                poseStack.pop();
+                poseStack.pushPose();
+                renderCube(poseStack, cube, vertexConsumer, 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                poseStack.popPose();
             }
 
             return true;

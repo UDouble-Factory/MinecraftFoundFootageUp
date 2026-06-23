@@ -1,17 +1,17 @@
 package com.sp.mixin.hudandresolution;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.blaze3d.platform.Monitor;
+import com.mojang.blaze3d.platform.VideoMode;
+import com.mojang.blaze3d.platform.Window;
 import com.sp.compat.modmenu.ConfigStuff;
 import com.sp.render.VhsAspectRatio;
-import net.minecraft.client.gui.screen.option.VideoOptionsScreen;
-import net.minecraft.client.gui.widget.OptionListWidget;
-import net.minecraft.client.option.GameOptions;
-import net.minecraft.client.option.SimpleOption;
-import net.minecraft.client.util.Monitor;
-import net.minecraft.client.util.VideoMode;
-import net.minecraft.client.util.Window;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.OptionInstance;
+import net.minecraft.client.Options;
+import net.minecraft.client.gui.components.OptionsList;
+import net.minecraft.client.gui.screens.VideoSettingsScreen;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -22,50 +22,50 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-@Mixin(VideoOptionsScreen.class)
+@Mixin(VideoSettingsScreen.class)
 public class VideoOptionsScreenMixin {
-    @Shadow private OptionListWidget list;
+    @Shadow private OptionsList list;
 
-    @Redirect(method = "init", at = @At(value = "NEW", target = "(Ljava/lang/String;Lnet/minecraft/client/option/SimpleOption$TooltipFactory;Lnet/minecraft/client/option/SimpleOption$ValueTextGetter;Lnet/minecraft/client/option/SimpleOption$Callbacks;Ljava/lang/Object;Ljava/util/function/Consumer;)Lnet/minecraft/client/option/SimpleOption;"))
-    private SimpleOption<Integer> redirectOptionConstructor(String key, SimpleOption.TooltipFactory tooltipFactory, SimpleOption.ValueTextGetter valueTextGetter, SimpleOption.Callbacks callbacks, Object defaultValue, Consumer changeCallback, @Local Window window, @Local Monitor monitor, @Local(ordinal = 1) int j){
+    @Redirect(method = "init", at = @At(value = "NEW", target = "(Ljava/lang/String;Lnet/minecraft/client/OptionInstance$TooltipSupplier;Lnet/minecraft/client/OptionInstance$CaptionBasedToString;Lnet/minecraft/client/OptionInstance$ValueSet;Ljava/lang/Object;Ljava/util/function/Consumer;)Lnet/minecraft/client/OptionInstance;"))
+    private OptionInstance<Integer> redirectOptionConstructor(String key, OptionInstance.TooltipSupplier tooltipFactory, OptionInstance.CaptionBasedToString valueTextGetter, OptionInstance.ValueSet callbacks, Object defaultValue, Consumer changeCallback, @Local Window window, @Local Monitor monitor, @Local(ordinal = 1) int j){
         int j2;
         if(ConfigStuff.enableVHSAspectRatio){
-            Optional<VideoMode> optional = VhsAspectRatio.currentVhsVideoMode != null ? VhsAspectRatio.currentVhsVideoMode : window.getVideoMode();
+            Optional<VideoMode> optional = VhsAspectRatio.currentVhsVideoMode != null ? VhsAspectRatio.currentVhsVideoMode : window.getPreferredFullscreenVideoMode();
             j2 = (Integer)optional.map(this::findClosestVhsVideoModeIndex).orElse(-1);
         } else {
-            Optional<VideoMode> optional = window.getVideoMode();
-            j2 = (Integer)optional.map(monitor::findClosestVideoModeIndex).orElse(-1);
+            Optional<VideoMode> optional = window.getPreferredFullscreenVideoMode();
+            j2 = (Integer)optional.map(monitor::getVideoModeIndex).orElse(-1);
         }
 
 
 
 
 
-        return VhsAspectRatio.normalVideoMode = new SimpleOption<>(
+        return VhsAspectRatio.normalVideoMode = new OptionInstance<>(
                 ConfigStuff.enableVHSAspectRatio ? "spb-revamped.options.fullscreen.resolution" : "options.fullscreen.resolution",
-                SimpleOption.emptyTooltip(),
+                OptionInstance.noTooltip(),
                 (prefix, value) -> {
                     if (monitor == null) {
-                        return Text.translatable("options.fullscreen.unavailable");
+                        return Component.translatable("options.fullscreen.unavailable");
                     } else {
                         return value == -1
-                                ? GameOptions.getGenericValueText(prefix, Text.translatable("options.fullscreen.current"))
-                                : GameOptions.getGenericValueText(prefix, ConfigStuff.enableVHSAspectRatio ? Text.literal(VhsAspectRatio.vhsAspectRatiosList.get(value).asString()).formatted(Formatting.GREEN) : Text.literal(monitor.getVideoMode(value).toString()));
+                                ? Options.genericValueLabel(prefix, Component.translatable("options.fullscreen.current"))
+                                : Options.genericValueLabel(prefix, ConfigStuff.enableVHSAspectRatio ? Component.literal(VhsAspectRatio.vhsAspectRatiosList.get(value).write()).withStyle(ChatFormatting.GREEN) : Component.literal(monitor.getMode(value).toString()));
                     }
                 },
-                new SimpleOption.ValidatingIntSliderCallbacks(-1, monitor == null ? -1 : ConfigStuff.enableVHSAspectRatio ? VhsAspectRatio.vhsAspectRatiosList.size() - 1 : monitor.getVideoModeCount() - 1),
+                new OptionInstance.IntRange(-1, monitor == null ? -1 : ConfigStuff.enableVHSAspectRatio ? VhsAspectRatio.vhsAspectRatiosList.size() - 1 : monitor.getModeCount() - 1),
                 j2,
                 value -> {
                     if (monitor != null) {
-                        Optional<VideoMode> videoMode = value == -1 ? Optional.empty() : ConfigStuff.enableVHSAspectRatio ? Optional.of(VhsAspectRatio.vhsAspectRatiosList.get(value)) : Optional.of(monitor.getVideoMode(value));
-                        window.setVideoMode(videoMode);
+                        Optional<VideoMode> videoMode = value == -1 ? Optional.empty() : ConfigStuff.enableVHSAspectRatio ? Optional.of(VhsAspectRatio.vhsAspectRatiosList.get(value)) : Optional.of(monitor.getMode(value));
+                        window.setPreferredFullscreenVideoMode(videoMode);
                     }
                 }
         );
     }
 
-    @ModifyArg(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/widget/OptionListWidget;addSingleOptionEntry(Lnet/minecraft/client/option/SimpleOption;)I", ordinal = 0))
-    private SimpleOption addNormalVideoModeToList(SimpleOption<?> option){
+    @ModifyArg(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/OptionsList;addBig(Lnet/minecraft/client/OptionInstance;)I", ordinal = 0))
+    private OptionInstance addNormalVideoModeToList(OptionInstance<?> option){
         return VhsAspectRatio.normalVideoMode;
     }
 

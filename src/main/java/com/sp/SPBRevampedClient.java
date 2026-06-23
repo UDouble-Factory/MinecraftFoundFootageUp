@@ -56,24 +56,26 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
-import net.minecraft.client.toast.SystemToast;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.World;
-import org.joml.*;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.toasts.SystemToast;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 import java.util.List;
 import java.util.Optional;
@@ -87,13 +89,13 @@ public class SPBRevampedClient implements ClientModInitializer {
     private static final CameraShake cameraShake = new CameraShake();
     private final FlashlightRenderer flashlightRenderer = new FlashlightRenderer();
 
-    private static final Identifier VHS_POST = new Identifier(SPBRevamped.MOD_ID, "vhs");
+    private static final ResourceLocation VHS_POST = new ResourceLocation(SPBRevamped.MOD_ID, "vhs");
 
-    private static final Identifier SSAO = new Identifier(SPBRevamped.MOD_ID, "vhs/ssao");
-    private static final Identifier EVERYTHING_SHADER = new Identifier(SPBRevamped.MOD_ID, "vhs/everything");
-    private static final Identifier POST_VHS = new Identifier(SPBRevamped.MOD_ID, "vhs/vhs_post");
-    private static final Identifier MIXED_SHADER = new Identifier(SPBRevamped.MOD_ID, "vhs/mixed");
-    private static final Identifier GLITCH_SHADER = new Identifier(SPBRevamped.MOD_ID, "vhs/glitch");
+    private static final ResourceLocation SSAO = new ResourceLocation(SPBRevamped.MOD_ID, "vhs/ssao");
+    private static final ResourceLocation EVERYTHING_SHADER = new ResourceLocation(SPBRevamped.MOD_ID, "vhs/everything");
+    private static final ResourceLocation POST_VHS = new ResourceLocation(SPBRevamped.MOD_ID, "vhs/vhs_post");
+    private static final ResourceLocation MIXED_SHADER = new ResourceLocation(SPBRevamped.MOD_ID, "vhs/mixed");
+    private static final ResourceLocation GLITCH_SHADER = new ResourceLocation(SPBRevamped.MOD_ID, "vhs/glitch");
 
     static boolean inBackrooms = false;
     public static boolean isLightning = false;
@@ -106,8 +108,8 @@ public class SPBRevampedClient implements ClientModInitializer {
 
     private static boolean shouldBeUnmuted = false;
 
-    private static final Random random = Random.create();
-    private static final Random random2 = Random.create(34563264);
+    private static final RandomSource random = RandomSource.create();
+    private static final RandomSource random2 = RandomSource.create(34563264);
 
     public static boolean shouldRenderWarp = false;
 
@@ -124,32 +126,32 @@ public class SPBRevampedClient implements ClientModInitializer {
 
         BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.POOLROOMS_SKY_BLOCK, RenderLayers.getPoolroomsSky());
 
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.BOTTOM_TRIM, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_1, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_2, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_3, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_4, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_5, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_6, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_7, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_8, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_99, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_ARROW_1, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_ARROW_2, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_ARROW_3, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_ARROW_4, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_SMALL_1, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_SMALL_2, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_DRAWING_DOOR, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_DRAWING_WINDOW, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.RUG_1, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.RUG_2, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.RED_METAL_CASING, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WINDOW, RenderLayer.getTranslucent());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.BOTTOM_TRIM, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_1, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_2, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_3, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_4, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_5, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_6, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_7, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_8, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_TEXT_99, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_ARROW_1, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_ARROW_2, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_ARROW_3, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_ARROW_4, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_SMALL_1, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_SMALL_2, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_DRAWING_DOOR, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WALL_DRAWING_WINDOW, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.RUG_1, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.RUG_2, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.RED_METAL_CASING, RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.WINDOW, RenderType.translucent());
 
-        BlockEntityRendererFactories.register(ModBlockEntities.FLUORESCENT_LIGHT_BLOCK_ENTITY, FluorescentLightBlockEntityRenderer::new);
-        BlockEntityRendererFactories.register(ModBlockEntities.THIN_FLUORESCENT_LIGHT_BLOCK_ENTITY, ThinFluorescentLightBlockEntityRenderer::new);
-        BlockEntityRendererFactories.register(ModBlockEntities.TINY_FLUORESCENT_LIGHT_BLOCK_ENTITY, TinyFluorescentLightBlockEntityRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.FLUORESCENT_LIGHT_BLOCK_ENTITY, FluorescentLightBlockEntityRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.THIN_FLUORESCENT_LIGHT_BLOCK_ENTITY, ThinFluorescentLightBlockEntityRenderer::new);
+        BlockEntityRenderers.register(ModBlockEntities.TINY_FLUORESCENT_LIGHT_BLOCK_ENTITY, TinyFluorescentLightBlockEntityRenderer::new);
 
         EntityRendererRegistry.register(ModEntities.SKIN_WALKER_ENTITY, SkinWalkerRenderer::new);
         EntityRendererRegistry.register(ModEntities.WALKER_ENTITY, WalkerRenderer::new);
@@ -157,14 +159,14 @@ public class SPBRevampedClient implements ClientModInitializer {
 
         EntityModelLayerRegistry.registerModelLayer(ModModelLayers.SMILER, SmilerModel::getTexturedModelData);
 
-        ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
-            public Identifier getFabricId() {
-                return new Identifier(SPBRevamped.MOD_ID, "after_resources");
+            public ResourceLocation getFabricId() {
+                return new ResourceLocation(SPBRevamped.MOD_ID, "after_resources");
             }
 
             @Override
-            public void reload(ResourceManager manager) {
+            public void onResourceManagerReload(ResourceManager manager) {
                 BlockIdMap.registerBlockID((blockIdMap) -> {
                     blockIdMap.put(ModBlocks.POOL_TILES, 18);
                     blockIdMap.put(ModBlocks.CEILINGLIGHT, 15);
@@ -195,7 +197,7 @@ public class SPBRevampedClient implements ClientModInitializer {
 
                 if (System.getProperty("os.name").toLowerCase().contains("mac")) {
                     SPBRevamped.LOGGER.error("This mod is not compatible with MacOS. Please use Windows or Linux (wayland).");
-                    MinecraftClient.getInstance().getToastManager().add(new SystemToast(SystemToast.Type.UNSECURE_SERVER_WARNING, Text.of("Potential Incompatibility found"), Text.of("This mod is not compatible with MacOS. Please use Windows or Linux (wayland).")));
+                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.UNSECURE_SERVER_WARNING, Component.nullToEmpty("Potential Incompatibility found"), Component.nullToEmpty("This mod is not compatible with MacOS. Please use Windows or Linux (wayland).")));
                 }
             }
         });
@@ -207,11 +209,11 @@ public class SPBRevampedClient implements ClientModInitializer {
                 SPBRevampedClient.camera = camera;
             }
 
-            MinecraftClient client = MinecraftClient.getInstance();
-            World clientWorld = client.world;
+            Minecraft client = Minecraft.getInstance();
+            Level clientWorld = client.level;
             if (clientWorld != null) {
                 //*Only render the shadow map when in the poolrooms
-                if (clientWorld.getRegistryKey() == BackroomsLevels.POOLROOMS_WORLD_KEY) {
+                if (clientWorld.dimension() == BackroomsLevels.POOLROOMS_WORLD_KEY) {
                     if (stage == Stage.AFTER_SKY) {
                         if (camera != null) {
                             ShadowMapRenderer.renderShadowMap(camera, partialTicks, clientWorld);
@@ -220,7 +222,7 @@ public class SPBRevampedClient implements ClientModInitializer {
                 }
 
                 if (!cutsceneManager.fall) {
-                    if (clientWorld.getRegistryKey() == BackroomsLevels.LEVEL0_WORLD_KEY) {
+                    if (clientWorld.dimension() == BackroomsLevels.LEVEL0_WORLD_KEY) {
                         if (stage == Stage.AFTER_SKY) {
                             if (camera != null) {
                                 ShadowMapRenderer.renderLevel0ShadowMap(camera, clientWorld);
@@ -229,7 +231,7 @@ public class SPBRevampedClient implements ClientModInitializer {
                     }
                 }
 
-                if (clientWorld.getRegistryKey() == BackroomsLevels.INFINITE_FIELD_WORLD_KEY) {
+                if (clientWorld.dimension() == BackroomsLevels.INFINITE_FIELD_WORLD_KEY) {
                     if (stage == Stage.AFTER_SOLID_BLOCKS) {
                         if (this.grassRenderer == null) {
                             this.grassRenderer = new GrassRenderer();
@@ -252,7 +254,7 @@ public class SPBRevampedClient implements ClientModInitializer {
                             }
                         }
                     }
-                } else if (clientWorld.getRegistryKey() == BackroomsLevels.LEVEL324_WORLD_KEY) {
+                } else if (clientWorld.dimension() == BackroomsLevels.LEVEL324_WORLD_KEY) {
                     if (stage == Stage.AFTER_SOLID_BLOCKS) {
                         if (this.grassRenderer == null) {
                             this.grassRenderer = new GrassRenderer();
@@ -298,14 +300,14 @@ public class SPBRevampedClient implements ClientModInitializer {
 
 
                         if (activeSkinwalker != null) {
-                            Box box = activeSkinwalker.getVisibilityBoundingBox().expand(0.1);
+                            AABB box = activeSkinwalker.getBoundingBoxForCulling().inflate(0.1);
                             boolean inFrustum = frustum.isVisible(box);
 
-                            if (inFrustum && client.player.canSee(activeSkinwalker)) {
+                            if (inFrustum && client.player.hasLineOfSight(activeSkinwalker)) {
                                 if (!playerComponent.canSeeActiveSkinWalkerTarget()) {
                                     playerComponent.setCanSeeActiveSkinWalkerTarget(true);
 
-                                    PacketByteBuf buffer = PacketByteBufs.create();
+                                    FriendlyByteBuf buffer = PacketByteBufs.create();
                                     buffer.writeBoolean(true);
                                     ClientPlayNetworking.send(InitializePackets.SEE_SKINWALKER_SYNC, buffer);
                                 }
@@ -313,7 +315,7 @@ public class SPBRevampedClient implements ClientModInitializer {
                                 if (playerComponent.canSeeActiveSkinWalkerTarget()) {
                                     playerComponent.setCanSeeActiveSkinWalkerTarget(false);
 
-                                    PacketByteBuf buffer = PacketByteBufs.create();
+                                    FriendlyByteBuf buffer = PacketByteBufs.create();
                                     buffer.writeBoolean(false);
                                     ClientPlayNetworking.send(InitializePackets.SEE_SKINWALKER_SYNC, buffer);
                                 }
@@ -322,7 +324,7 @@ public class SPBRevampedClient implements ClientModInitializer {
                     }
 
                     if (!client.player.isSpectator() && !client.player.isCreative()) {
-                        client.options.debugEnabled = false;
+                        client.options.renderDebug = false;
                     }
 
                 }
@@ -331,8 +333,8 @@ public class SPBRevampedClient implements ClientModInitializer {
         });
 
         VeilEventPlatform.INSTANCE.preVeilPostProcessing(((name, pipeline, context) -> {
-            MinecraftClient client = MinecraftClient.getInstance();
-            PlayerEntity player = MinecraftClient.getInstance().player;
+            Minecraft client = Minecraft.getInstance();
+            Player player = Minecraft.getInstance().player;
             VeilRenderer renderer = VeilRenderSystem.renderer();
             ShaderPreDefinitions definitions = renderer.getShaderDefinitions();
 
@@ -342,7 +344,7 @@ public class SPBRevampedClient implements ClientModInitializer {
                 }
             }
 
-            if (player != null && client.world != null) {
+            if (player != null && client.level != null) {
                 PlayerComponent playerComponent = InitializeComponents.PLAYER.get(player);
 
                 if (VHS_POST.equals(name)) {
@@ -380,20 +382,20 @@ public class SPBRevampedClient implements ClientModInitializer {
 
                     shaderProgram = context.getShader(EVERYTHING_SHADER);
                     if (shaderProgram != null) {
-                        if (client.world.getRegistryKey() == BackroomsLevels.LEVEL1_WORLD_KEY) {
+                        if (client.level.dimension() == BackroomsLevels.LEVEL1_WORLD_KEY) {
                             shaderProgram.setInt("FogToggle", 1);
                         } else {
                             shaderProgram.setInt("FogToggle", 0);
                         }
 
 
-                        if(blackScreen || (player.isInsideWall() && !getCutsceneManager().isPlaying) || playerComponent.isBeingReleased()) {
+                        if(blackScreen || (player.isInWall() && !getCutsceneManager().isPlaying) || playerComponent.isBeingReleased()) {
                             shaderProgram.setInt("blackScreen", 1);
                         } else {
                             shaderProgram.setInt("blackScreen", 0);
                         }
 
-                        if (client.world.getRegistryKey() == BackroomsLevels.LEVEL1_WORLD_KEY) {
+                        if (client.level.dimension() == BackroomsLevels.LEVEL1_WORLD_KEY) {
                             shaderProgram.setInt("TogglePuddles", 1);
                         } else {
                             shaderProgram.setInt("TogglePuddles", 0);
@@ -420,9 +422,9 @@ public class SPBRevampedClient implements ClientModInitializer {
 
                 }
 
-                BackroomsLevels.getLevel(client.world).ifPresent((backroomsLevel -> {
+                BackroomsLevels.getLevel(client.level).ifPresent((backroomsLevel -> {
                     if (backroomsLevel instanceof Level2BackroomsLevel level) {
-                        if (level.isWarping() || !finishedWarp(client.world)) {
+                        if (level.isWarping() || !finishedWarp(client.level)) {
                             definitions.define("WARP");
                         } else {
                             definitions.remove("WARP");
@@ -439,7 +441,7 @@ public class SPBRevampedClient implements ClientModInitializer {
                 });
 
                 BackroomsLevels.definitions.forEach((s, registryKey) -> {
-                    if (client.world.getRegistryKey() == registryKey) {
+                    if (client.level.dimension() == registryKey) {
                         definitions.define(s);
                     } else {
                         definitions.remove(s);
@@ -454,11 +456,11 @@ public class SPBRevampedClient implements ClientModInitializer {
             VeilDeferredRenderer renderer = VeilRenderSystem.renderer().getDeferredRenderer();
             renderer.reset();
 
-            if (client.world != null) {
+            if (client.level != null) {
                 HelpfulHintManager.sendMessages(client.player);
 
                 //*Just in case it become unsynced
-                BackroomsLevels.getLevel(client.world).ifPresent((backroomsLevel -> {
+                BackroomsLevels.getLevel(client.level).ifPresent((backroomsLevel -> {
                     if (backroomsLevel instanceof PoolroomsBackroomsLevel poolroomsBackroomsLevel) {
                         PoolroomsDayCycle.dayTime = poolroomsBackroomsLevel.getTimeOfDay();
                     }
@@ -470,7 +472,7 @@ public class SPBRevampedClient implements ClientModInitializer {
 
         //*For some reason veil lights aren't removed when you leave the game
         ClientConnectionEvents.DISCONNECT.register(client -> {
-            ClientPlayerEntity player = client.player;
+            LocalPlayer player = client.player;
             if (player != null) {
                 PlayerComponent playerComponent = InitializeComponents.PLAYER.get(player);
                 playerComponent.setFlashLightOn(false);
@@ -515,12 +517,12 @@ public class SPBRevampedClient implements ClientModInitializer {
             }
 
             //Fixes Minecraft spectating not loading chunks bug
-            MinecraftClient client1 = MinecraftClient.getInstance();
-            PlayerEntity player = client1.player;
+            Minecraft client1 = Minecraft.getInstance();
+            Player player = client1.player;
             if (player != null) {
                 if (player != client1.getCameraEntity() && client1.getCameraEntity() != null) {
-                    Vec3d pos = client1.getCameraEntity().getPos();
-                    player.setPosition(pos);
+                    Vec3 pos = client1.getCameraEntity().position();
+                    player.setPos(pos);
                 }
             }
         });
@@ -536,12 +538,12 @@ public class SPBRevampedClient implements ClientModInitializer {
                 shouldBeUnmuted = false;
             }
 
-            PlayerEntity playerClient = client.player;
+            Player playerClient = client.player;
             if (playerClient != null){
                 //*Main Set in Backrooms
-                setInBackrooms(BackroomsLevels.isInBackrooms(playerClient.getWorld().getRegistryKey()));
+                setInBackrooms(BackroomsLevels.isInBackrooms(playerClient.level().dimension()));
 
-                if (client.world != null) {
+                if (client.level != null) {
                     VeilRenderer renderer = VeilRenderSystem.renderer();
                     VeilDeferredRenderer deferredRenderer = renderer.getDeferredRenderer();
                     LightRenderer lightRenderer = deferredRenderer.getLightRenderer();
@@ -549,7 +551,7 @@ public class SPBRevampedClient implements ClientModInitializer {
                     if (shouldRenderCameraEffect() && isInBackrooms()) {
                         HelpfulHintManager.disableSuffocateHint();
 
-                        BackroomsLevel level = BackroomsLevels.getLevel(client.player.getWorld()).orElse(BackroomsLevels.OVERWORLD_REPRESENTING_BACKROOMS_LEVEL);
+                        BackroomsLevel level = BackroomsLevels.getLevel(client.player.level()).orElse(BackroomsLevels.OVERWORLD_REPRESENTING_BACKROOMS_LEVEL);
 
                         if (!level.hasVanillaLighting()) {
                             lightRenderer.disableVanillaLight();
@@ -574,9 +576,9 @@ public class SPBRevampedClient implements ClientModInitializer {
 
     }
 
-    public static void setShadowUniforms(MutableUniformAccess access, World world) {
-        Matrix4f level0ViewMat = ShadowMapRenderer.createShadowModelView(camera.getPos().x, camera.getPos().y, camera.getPos().z, true).peek().getPositionMatrix();
-        Matrix4f viewMat = ShadowMapRenderer.createShadowModelView(camera.getPos().x, camera.getPos().y, camera.getPos().z, world, true).peek().getPositionMatrix();
+    public static void setShadowUniforms(MutableUniformAccess access, Level world) {
+        Matrix4f level0ViewMat = ShadowMapRenderer.createShadowModelView(camera.getPosition().x, camera.getPosition().y, camera.getPosition().z, true).last().pose();
+        Matrix4f viewMat = ShadowMapRenderer.createShadowModelView(camera.getPosition().x, camera.getPosition().y, camera.getPosition().z, world, true).last().pose();
 
         access.setMatrix("level0ViewMatrix", level0ViewMat);
         access.setMatrix("viewMatrix", viewMat);
@@ -585,7 +587,7 @@ public class SPBRevampedClient implements ClientModInitializer {
         access.setMatrix("orthographMatrix", ShadowMapRenderer.createProjMat());
     }
 
-    public static float getWarpTimer(World world) {
+    public static float getWarpTimer(Level world) {
         if (!(BackroomsLevels.getLevel(world).orElse(BackroomsLevels.OVERWORLD_REPRESENTING_BACKROOMS_LEVEL) instanceof Level2BackroomsLevel level)) {
             return 0;
         }
@@ -606,15 +608,15 @@ public class SPBRevampedClient implements ClientModInitializer {
         }
     }
 
-    public static boolean finishedWarp(World world) {
+    public static boolean finishedWarp(Level world) {
         float warp = getWarpTimer(world);
         return warp == 0 || warp == 0.03141592f/2;
     }
 
     public static void sendComponentSyncPacket(boolean writeBoolean, String component) {
-        PacketByteBuf buffer = PacketByteBufs.create();
+        FriendlyByteBuf buffer = PacketByteBufs.create();
         buffer.writeBoolean(writeBoolean);
-        buffer.writeString(component);
+        buffer.writeUtf(component);
         ClientPlayNetworking.send(InitializePackets.COMPONENT_SYNC, buffer);
     }
 
@@ -639,14 +641,14 @@ public class SPBRevampedClient implements ClientModInitializer {
     }
 
     public static Optional<BackroomsLevel> getCurrentBackroomsLevel() {
-        return BackroomsLevels.getLevel(MinecraftClient.getInstance().world);
+        return BackroomsLevels.getLevel(Minecraft.getInstance().level);
     }
 
     public static boolean isInLevel(BackroomsLevel level) {
-        if (MinecraftClient.getInstance().world == null) {
+        if (Minecraft.getInstance().level == null) {
             return false;
         }
 
-        return BackroomsLevels.isInBackroomsLevel(MinecraftClient.getInstance().world, level);
+        return BackroomsLevels.isInBackroomsLevel(Minecraft.getInstance().level, level);
     }
 }

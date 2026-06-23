@@ -5,31 +5,31 @@ import com.sp.cca_stuff.PlayerComponent;
 import com.sp.init.ModSounds;
 import com.sp.util.ExtraUtils;
 import foundry.veil.api.client.render.shader.program.ShaderProgram;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 
 public class SkinwalkerJumpscare {
     private static long startTime;
     private static boolean started = false;
-    private static Random random = Random.create(13);
-    private static Random random2 = Random.create(8767);
+    private static RandomSource random = RandomSource.create(13);
+    private static RandomSource random2 = RandomSource.create(8767);
 
-    private static PositionedSoundInstance jumpScareSound;
+    private static SimpleSoundInstance jumpScareSound;
 
-    public static void doJumpscare(ShaderProgram program, MinecraftClient client, PlayerComponent component){
+    public static void doJumpscare(ShaderProgram program, Minecraft client, PlayerComponent component){
         if(!started){
             startTime = System.currentTimeMillis();
             started = true;
             if(client.player != null) {
-                jumpScareSound = new PositionedSoundInstance(ModSounds.JUMPSCARE, SoundCategory.HOSTILE, 1.0f, 1.0f, client.player.getRandom(), client.player.getBlockPos());
+                jumpScareSound = new SimpleSoundInstance(ModSounds.JUMPSCARE, SoundSource.HOSTILE, 1.0f, 1.0f, client.player.getRandom(), client.player.blockPosition());
                 client.getSoundManager().play(jumpScareSound);
             }
         }
 
-        ExtraUtils.stopAllOtherSounds(jumpScareSound.getId(), client.getSoundManager().soundSystem);
-        client.options.hudHidden = true;
+        ExtraUtils.stopAllOtherSounds(jumpScareSound.getLocation(), client.getSoundManager().soundEngine);
+        client.options.hideGui = true;
         program.setInt("Jumpscare", 1);
 
         long currentTime = (System.currentTimeMillis() - startTime);
@@ -45,7 +45,7 @@ public class SkinwalkerJumpscare {
 
         if(currentTime >= 14000) {
             component.setBeingCaptured(false);
-            client.options.hudHidden = false;
+            client.options.hideGui = false;
             started = false;
             startTime = 0L;
 

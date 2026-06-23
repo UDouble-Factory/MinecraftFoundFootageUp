@@ -7,11 +7,11 @@ import com.sp.init.ModSounds;
 import com.sp.render.PoolroomsDayCycle;
 import com.sp.world.events.AbstractEvent;
 import com.sp.world.levels.custom.PoolroomsBackroomsLevel;
-import net.minecraft.world.World;
+import net.minecraft.world.level.Level;
 
 public class PoolroomsSunset extends AbstractEvent {
     @Override
-    public void init(World world) {
+    public void init(Level world) {
 
         BackroomsLevels.getLevel(world).ifPresent(backroomsLevel -> {
             if (!(backroomsLevel instanceof PoolroomsBackroomsLevel level)) {
@@ -31,7 +31,7 @@ public class PoolroomsSunset extends AbstractEvent {
     }
 
     @Override
-    public void finish(World world) {
+    public void finish(Level world) {
         super.finish(world);
 
         BackroomsLevels.getLevel(world).ifPresent(backroomsLevel -> {

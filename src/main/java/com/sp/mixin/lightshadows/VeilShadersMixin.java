@@ -1,7 +1,7 @@
 package com.sp.mixin.lightshadows;
 
 import foundry.veil.api.client.render.shader.VeilShaders;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
@@ -9,8 +9,8 @@ import org.spongepowered.asm.mixin.Shadow;
 public class VeilShadersMixin {
 
     @Shadow
-    public static final Identifier LIGHT_POINT = new Identifier("spbrevamped", "point");
+    public static final ResourceLocation LIGHT_POINT = new ResourceLocation("spbrevamped", "point");
 
     @Shadow
-    public static final Identifier LIGHT_AREA = new Identifier("spbrevamped", "area");
+    public static final ResourceLocation LIGHT_AREA = new ResourceLocation("spbrevamped", "area");
 }

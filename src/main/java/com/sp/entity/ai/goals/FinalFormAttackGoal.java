@@ -3,9 +3,9 @@ package com.sp.entity.ai.goals;
 import com.sp.cca_stuff.InitializeComponents;
 import com.sp.cca_stuff.SkinWalkerComponent;
 import com.sp.entity.custom.SkinWalkerEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 
 public class FinalFormAttackGoal extends MeleeAttackGoal {
     private final SkinWalkerComponent component;
@@ -16,13 +16,13 @@ public class FinalFormAttackGoal extends MeleeAttackGoal {
     }
 
     @Override
-    public boolean canStart() {
+    public boolean canUse() {
         if(this.component.isInTrueForm()) {
-            long l = this.mob.getWorld().getTime();
-            if (l - this.lastUpdateTime < 20L) {
+            long l = this.mob.level().getGameTime();
+            if (l - this.lastCanUseCheck < 20L) {
                 return false;
             } else {
-                this.lastUpdateTime = l;
+                this.lastCanUseCheck = l;
                 LivingEntity livingEntity = this.mob.getTarget();
                 if (livingEntity == null) {
                     this.moveToLastKnownLocation();
@@ -31,10 +31,10 @@ public class FinalFormAttackGoal extends MeleeAttackGoal {
                     this.moveToLastKnownLocation();
                     return false;
                 } else {
-                    this.path = this.mob.getNavigation().findPathTo(livingEntity, 0);
+                    this.path = this.mob.getNavigation().createPath(livingEntity, 0);
                     return this.path != null
                             ? true
-                            : this.getSquaredMaxAttackDistance(livingEntity) >= this.mob.squaredDistanceTo(livingEntity.getX(), livingEntity.getY(), livingEntity.getZ());
+                            : this.getAttackReachSqr(livingEntity) >= this.mob.distanceToSqr(livingEntity.getX(), livingEntity.getY(), livingEntity.getZ());
                 }
             }
         }
@@ -46,7 +46,7 @@ public class FinalFormAttackGoal extends MeleeAttackGoal {
         BlockPos pos = this.component.getLastKnownTargetLocation();
 
         if(pos != null){
-            this.mob.getNavigation().startMovingTo(pos.getX(), pos.getY(), pos.getZ(), 1.0);
+            this.mob.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1.0);
         }
     }
 

@@ -2,7 +2,7 @@ package com.sp.render.pbr;
 
 import com.sp.render.RenderLayers;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
-import net.minecraft.block.Block;
+import net.minecraft.world.level.block.Block;
 
 import java.util.HashMap;
 

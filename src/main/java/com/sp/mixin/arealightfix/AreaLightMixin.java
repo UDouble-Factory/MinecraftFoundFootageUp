@@ -5,7 +5,7 @@ import foundry.veil.api.client.render.deferred.light.AreaLight;
 import foundry.veil.api.client.render.deferred.light.InstancedLight;
 import foundry.veil.api.client.render.deferred.light.Light;
 import foundry.veil.api.client.render.deferred.light.PositionedLight;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 import org.joml.Matrix4d;
 import org.joml.Vector2f;
 import org.spongepowered.asm.mixin.Final;
@@ -39,7 +39,7 @@ public abstract class AreaLightMixin extends Light implements InstancedLight, Po
         this.size.get(buffer.position(), buffer);
         buffer.position(buffer.position() + Float.BYTES * 2);
 
-        buffer.putFloat((float) MathHelper.clamp((int) (this.angle * MAX_ANGLE_SIZE), 0, 65535));
+        buffer.putFloat((float) Mth.clamp((int) (this.angle * MAX_ANGLE_SIZE), 0, 65535));
         buffer.putFloat(this.distance);
     }
 

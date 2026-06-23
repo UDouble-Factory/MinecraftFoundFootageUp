@@ -5,21 +5,21 @@ import com.sp.cca_stuff.InitializeComponents;
 import com.sp.cca_stuff.SkinWalkerComponent;
 import com.sp.entity.custom.SkinWalkerEntity;
 import com.sp.entity.ik.model.GeckoLib.GeoModelAccessor;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 
 public class SkinWalkerModel extends GeoModel<SkinWalkerEntity> {
-	private final Identifier SLIM_MODEL = new Identifier(SPBRevamped.MOD_ID, "geo/entity/skin_walker_slim.geo.json");
-	private final Identifier DEFAULT_MODEL = new Identifier(SPBRevamped.MOD_ID, "geo/entity/skin_walker_default.geo.json");
-	private final Identifier FINAL_MODEL = new Identifier(SPBRevamped.MOD_ID, "geo/entity/skin_walker_final_default.geo.json");
+	private final ResourceLocation SLIM_MODEL = new ResourceLocation(SPBRevamped.MOD_ID, "geo/entity/skin_walker_slim.geo.json");
+	private final ResourceLocation DEFAULT_MODEL = new ResourceLocation(SPBRevamped.MOD_ID, "geo/entity/skin_walker_default.geo.json");
+	private final ResourceLocation FINAL_MODEL = new ResourceLocation(SPBRevamped.MOD_ID, "geo/entity/skin_walker_final_default.geo.json");
 
-	private final Identifier PLACEHOLDER_TEXTURE = new Identifier(SPBRevamped.MOD_ID, "textures/entity/skinwalker/placeholder.png");
-	private final Identifier STEVE_TEXTURE = new Identifier("textures/entity/player/wide/steve.png");
+	private final ResourceLocation PLACEHOLDER_TEXTURE = new ResourceLocation(SPBRevamped.MOD_ID, "textures/entity/skinwalker/placeholder.png");
+	private final ResourceLocation STEVE_TEXTURE = new ResourceLocation("textures/entity/player/wide/steve.png");
 
-	private final Identifier ANIMATION = new Identifier(SPBRevamped.MOD_ID, "animations/entity/skinwalker.animation.json");
+	private final ResourceLocation ANIMATION = new ResourceLocation(SPBRevamped.MOD_ID, "animations/entity/skinwalker.animation.json");
 
 	@Override
 	public void setCustomAnimations(SkinWalkerEntity animatable, long instanceId, AnimationState<SkinWalkerEntity> animationState) {
@@ -32,15 +32,15 @@ public class SkinWalkerModel extends GeoModel<SkinWalkerEntity> {
 	}
 
 	@Override
-	public Identifier getModelResource(SkinWalkerEntity animatable) {
+	public ResourceLocation getModelResource(SkinWalkerEntity animatable) {
 		SkinWalkerComponent component = InitializeComponents.SKIN_WALKER.get(animatable);
 
 		if(!component.isInTrueForm()) {
-			MinecraftClient client = MinecraftClient.getInstance();
-			if (client.world != null) {
-				AbstractClientPlayerEntity player = (AbstractClientPlayerEntity) client.world.getPlayerByUuid(component.getTargetPlayerUUID());
+			Minecraft client = Minecraft.getInstance();
+			if (client.level != null) {
+				AbstractClientPlayer player = (AbstractClientPlayer) client.level.getPlayerByUUID(component.getTargetPlayerUUID());
 				if (player != null) {
-					if (player.getModel().equals("slim")) {
+					if (player.getModelName().equals("slim")) {
 						return SLIM_MODEL;
 					}
 				}
@@ -53,13 +53,13 @@ public class SkinWalkerModel extends GeoModel<SkinWalkerEntity> {
 	}
 
 	@Override
-	public Identifier getTextureResource(SkinWalkerEntity animatable) {
-		MinecraftClient client = MinecraftClient.getInstance();
+	public ResourceLocation getTextureResource(SkinWalkerEntity animatable) {
+		Minecraft client = Minecraft.getInstance();
 		SkinWalkerComponent component = InitializeComponents.SKIN_WALKER.get(animatable);
-		if(client.world != null){
-			AbstractClientPlayerEntity player = (AbstractClientPlayerEntity) client.world.getPlayerByUuid(component.getTargetPlayerUUID());
+		if(client.level != null){
+			AbstractClientPlayer player = (AbstractClientPlayer) client.level.getPlayerByUUID(component.getTargetPlayerUUID());
 			if(player != null) {
-				return player.getSkinTexture();
+				return player.getSkinTextureLocation();
 			}
 		}
 
@@ -67,7 +67,7 @@ public class SkinWalkerModel extends GeoModel<SkinWalkerEntity> {
 	}
 
 	@Override
-	public Identifier getAnimationResource(SkinWalkerEntity animatable) {
+	public ResourceLocation getAnimationResource(SkinWalkerEntity animatable) {
 		return ANIMATION;
 	}
 

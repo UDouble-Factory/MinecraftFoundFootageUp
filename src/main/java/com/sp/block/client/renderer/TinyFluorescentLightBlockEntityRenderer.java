@@ -1,5 +1,7 @@
 package com.sp.block.client.renderer;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.sp.SPBRevamped;
 import com.sp.SPBRevampedClient;
 import com.sp.block.custom.TinyFluorescentLightBlock;
@@ -8,43 +10,39 @@ import com.sp.compat.modmenu.ConfigStuff;
 import com.sp.render.RenderLayers;
 import foundry.veil.api.client.render.VeilRenderSystem;
 import foundry.veil.api.client.render.shader.program.ShaderProgram;
-import net.minecraft.block.enums.WallMountLocation;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.RotationAxis;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
 
-import static net.minecraft.util.math.Direction.WEST;
+import static net.minecraft.core.Direction.WEST;
 
 public class TinyFluorescentLightBlockEntityRenderer implements BlockEntityRenderer<TinyFluorescentLightBlockEntity> {
-    private static final Identifier SHADER = new Identifier(SPBRevamped.MOD_ID, "light/fluorescent_light");
+    private static final ResourceLocation SHADER = new ResourceLocation(SPBRevamped.MOD_ID, "light/fluorescent_light");
 
 
-    public TinyFluorescentLightBlockEntityRenderer(BlockEntityRendererFactory.Context context){
+    public TinyFluorescentLightBlockEntityRenderer(BlockEntityRendererProvider.Context context){
 
     }
 
 
     @Override
-    public void render(TinyFluorescentLightBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        boolean blackout = entity.getCurrentState().get(TinyFluorescentLightBlock.BLACKOUT);
-        boolean on = entity.getCurrentState().get(TinyFluorescentLightBlock.ON);
+    public void render(TinyFluorescentLightBlockEntity entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+        Minecraft client = Minecraft.getInstance();
+        boolean blackout = entity.getCurrentState().getValue(TinyFluorescentLightBlock.BLACKOUT);
+        boolean on = entity.getCurrentState().getValue(TinyFluorescentLightBlock.ON);
 
         ShaderProgram shader = VeilRenderSystem.setShader(SHADER);
         if(shader == null){
             return;
         }
 
-        if(client.world != null) {
-            shader.setFloat("warAngle", SPBRevampedClient.getWarpTimer(client.world));
+        if(client.level != null) {
+            shader.setFloat("warAngle", SPBRevampedClient.getWarpTimer(client.level));
         }
 
         //don't render if blackout is active
@@ -52,7 +50,7 @@ public class TinyFluorescentLightBlockEntityRenderer implements BlockEntityRende
 
 
 
-        Matrix4f matrix4f = matrices.peek().getPositionMatrix();
+        Matrix4f matrix4f = matrices.last().pose();
 
         shader.bind();
         this.renderCube(entity, matrix4f, vertexConsumers.getBuffer(this.getLayer()));
@@ -69,18 +67,18 @@ public class TinyFluorescentLightBlockEntityRenderer implements BlockEntityRende
     }
 
     private void renderFace(TinyFluorescentLightBlockEntity entity, Matrix4f matrix, VertexConsumer buffer, float x, float x2, float y, float y2, float z, float z2, float z3, float z4, Direction direction) {
-            buffer.vertex(matrix, x, y, z).next();
-            buffer.vertex(matrix, x2, y, z2).next();
-            buffer.vertex(matrix, x2, y2, z3).next();
-            buffer.vertex(matrix, x, y2, z4).next();
+            buffer.vertex(matrix, x, y, z).endVertex();
+            buffer.vertex(matrix, x2, y, z2).endVertex();
+            buffer.vertex(matrix, x2, y2, z3).endVertex();
+            buffer.vertex(matrix, x, y2, z4).endVertex();
     }
 
-    protected RenderLayer getLayer() {
+    protected RenderType getLayer() {
         return RenderLayers.FLUORESCENT_LIGHT;
     }
 
     @Override
-    public int getRenderDistance() {
+    public int getViewDistance() {
         return (int) ConfigStuff.getLightRenderDistance();
     }
 }

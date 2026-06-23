@@ -3,7 +3,7 @@ package com.sp.entity.client.model;
 import com.sp.SPBRevamped;
 import com.sp.entity.custom.WalkerEntity;
 import com.sp.entity.ik.model.GeckoLib.GeoModelAccessor;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 /**
@@ -12,8 +12,8 @@ import software.bernie.geckolib.model.GeoModel;
  * Head reworked with the help of Jarton
  */
 public class WalkerModel extends GeoModel<WalkerEntity> {
-	private final Identifier MODEL = new Identifier(SPBRevamped.MOD_ID, "geo/entity/walker.geo.json");
-	private final Identifier TEXTURES = new Identifier(SPBRevamped.MOD_ID, "textures/entity/walker/walker.png");
+	private final ResourceLocation MODEL = new ResourceLocation(SPBRevamped.MOD_ID, "geo/entity/walker.geo.json");
+	private final ResourceLocation TEXTURES = new ResourceLocation(SPBRevamped.MOD_ID, "textures/entity/walker/walker.png");
 
 
 	@Override
@@ -24,17 +24,17 @@ public class WalkerModel extends GeoModel<WalkerEntity> {
 	}
 
 	@Override
-	public Identifier getModelResource(WalkerEntity animatable) {
+	public ResourceLocation getModelResource(WalkerEntity animatable) {
 		return MODEL;
 	}
 
 	@Override
-	public Identifier getTextureResource(WalkerEntity animatable) {
+	public ResourceLocation getTextureResource(WalkerEntity animatable) {
 		return TEXTURES;
 	}
 
 	@Override
-	public Identifier getAnimationResource(WalkerEntity animatable) {
+	public ResourceLocation getAnimationResource(WalkerEntity animatable) {
 		return null;
 	}
 

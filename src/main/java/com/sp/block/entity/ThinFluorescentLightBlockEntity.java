@@ -8,12 +8,12 @@ import com.sp.init.ModBlocks;
 import com.sp.world.levels.BackroomsLevelWithLights;
 import foundry.veil.api.client.render.VeilRenderSystem;
 import foundry.veil.api.client.render.deferred.light.PointLight;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 import static com.sp.clientWrapper.ClientWrapper.doClientSideThinFluorescentsTick;
 
@@ -25,7 +25,7 @@ public class ThinFluorescentLightBlockEntity extends BlockEntity {
     public boolean prevOn;
     public final int randInt;
     public int ticks = 0;
-    public final Random random = Random.create();
+    public final RandomSource random = RandomSource.create();
 
     public ThinFluorescentLightBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.THIN_FLUORESCENT_LIGHT_BLOCK_ENTITY, pos, state);
@@ -37,32 +37,32 @@ public class ThinFluorescentLightBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void markRemoved() {
-        if (this.getWorld() != null && this.getWorld().isClient){
+    public void setRemoved() {
+        if (this.getLevel() != null && this.getLevel().isClientSide){
             if(pointLight != null) {
                 VeilRenderSystem.renderer().getDeferredRenderer().getLightRenderer().removeLight(pointLight);
                 pointLight = null;
             }
         }
 
-        super.markRemoved();
+        super.setRemoved();
     }
 
-    public void tick(World world, BlockPos pos, BlockState state) {
+    public void tick(Level world, BlockPos pos, BlockState state) {
         if (world.getBlockState(pos).getBlock() != ModBlocks.THIN_FLUORESCENT_LIGHT) {
             return;
         }
 
-        Vec3d position = pos.toCenterPos();
-        Random random = Random.create();
+        Vec3 position = pos.getCenter();
+        RandomSource random = RandomSource.create();
         java.util.Random random1 = new java.util.Random();
         this.currentState = state;
         ticks++;
 
-        if (!world.isClient) {
+        if (!world.isClientSide) {
             BlockState northState = world.getBlockState(pos.north());
             BlockState westState = world.getBlockState(pos.west());
-            BlockState downState = world.getBlockState(pos.down());
+            BlockState downState = world.getBlockState(pos.below());
             int northOWest = 0;
 
             if (northState.getBlock() == ModBlocks.THIN_FLUORESCENT_LIGHT) {
@@ -75,15 +75,15 @@ public class ThinFluorescentLightBlockEntity extends BlockEntity {
 
             if (northOWest != 0) {
                 if (northOWest == 1) {
-                    world.setBlockState(pos, northState.with(ThinFluorescentLightBlock.COPY, true));
+                    world.setBlockAndUpdate(pos, northState.setValue(ThinFluorescentLightBlock.COPY, true));
                 } else if (northOWest == 2) {
-                    world.setBlockState(pos, westState.with(ThinFluorescentLightBlock.COPY, true));
+                    world.setBlockAndUpdate(pos, westState.setValue(ThinFluorescentLightBlock.COPY, true));
                 } else {
-                    world.setBlockState(pos, downState.with(ThinFluorescentLightBlock.COPY, true));
+                    world.setBlockAndUpdate(pos, downState.setValue(ThinFluorescentLightBlock.COPY, true));
                 }
             } else {
-                if (state.get(ThinFluorescentLightBlock.COPY)) {
-                    world.setBlockState(pos, world.getBlockState(pos).with(ThinFluorescentLightBlock.COPY, false));
+                if (state.getValue(ThinFluorescentLightBlock.COPY)) {
+                    world.setBlockAndUpdate(pos, world.getBlockState(pos).setValue(ThinFluorescentLightBlock.COPY, false));
                 }
 
                 //Turn off if Blackout Event is active
@@ -96,31 +96,31 @@ public class ThinFluorescentLightBlockEntity extends BlockEntity {
                 }
 
                 if (blackouted) {
-                    world.setBlockState(pos, world.getBlockState(pos).with(ThinFluorescentLightBlock.BLACKOUT, true));
+                    world.setBlockAndUpdate(pos, world.getBlockState(pos).setValue(ThinFluorescentLightBlock.BLACKOUT, true));
                     this.setPlayingSound(false);
 
                 } else {
-                    world.setBlockState(pos, world.getBlockState(pos).with(ThinFluorescentLightBlock.BLACKOUT, false));
+                    world.setBlockAndUpdate(pos, world.getBlockState(pos).setValue(ThinFluorescentLightBlock.BLACKOUT, false));
                 }
 
-                if ((BackroomsLevels.getLevel(world)).orElse(BackroomsLevels.POOLROOMS_BACKROOMS_LEVEL) instanceof BackroomsLevelWithLights level && level.getLightState() == BackroomsLevelWithLights.LightState.FLICKER && !state.get(ThinFluorescentLightBlock.BLACKOUT)) {
+                if ((BackroomsLevels.getLevel(world)).orElse(BackroomsLevels.POOLROOMS_BACKROOMS_LEVEL) instanceof BackroomsLevelWithLights level && level.getLightState() == BackroomsLevelWithLights.LightState.FLICKER && !state.getValue(ThinFluorescentLightBlock.BLACKOUT)) {
                     if (ticks % randInt == 0) {
-                        int i = random.nextBetween(1, 2);
+                        int i = random.nextIntBetweenInclusive(1, 2);
                         if (i == 1) {
-                            world.setBlockState(pos, world.getBlockState(pos).with(ThinFluorescentLightBlock.ON, true));
+                            world.setBlockAndUpdate(pos, world.getBlockState(pos).setValue(ThinFluorescentLightBlock.ON, true));
                         } else {
-                            world.setBlockState(pos, world.getBlockState(pos).with(ThinFluorescentLightBlock.ON, false));
+                            world.setBlockAndUpdate(pos, world.getBlockState(pos).setValue(ThinFluorescentLightBlock.ON, false));
                         }
                     }
                 } else {
-                    if (!state.get(ThinFluorescentLightBlock.ON)) {
-                        world.setBlockState(pos, world.getBlockState(pos).with(ThinFluorescentLightBlock.ON, true));
+                    if (!state.getValue(ThinFluorescentLightBlock.ON)) {
+                        world.setBlockAndUpdate(pos, world.getBlockState(pos).setValue(ThinFluorescentLightBlock.ON, true));
                     }
                 }
             }
         }
 
-        if (world.isClient) {
+        if (world.isClientSide) {
             doClientSideThinFluorescentsTick(world, pos, state, random1, position, this);
         }
 
@@ -128,7 +128,7 @@ public class ThinFluorescentLightBlockEntity extends BlockEntity {
             ticks = 1;
         }
 
-        prevOn = world.getBlockState(pos).get(FluorescentLightBlock.ON);
+        prevOn = world.getBlockState(pos).getValue(FluorescentLightBlock.ON);
     }
 
     public BlockState getCurrentState(){

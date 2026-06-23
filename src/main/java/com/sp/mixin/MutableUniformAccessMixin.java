@@ -1,13 +1,13 @@
 package com.sp.mixin;
 
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.sp.SPBRevampedClient;
 import com.sp.render.PoolroomsDayCycle;
 import foundry.veil.api.client.render.shader.program.MutableUniformAccess;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.client.util.Window;
-import net.minecraft.screen.PlayerScreenHandler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.world.inventory.InventoryMenu;
 import org.joml.Matrix4fc;
 import org.joml.Vector3fc;
 import org.spongepowered.asm.mixin.Mixin;
@@ -41,7 +41,7 @@ public interface MutableUniformAccessMixin {
         this.setFloat("FogStart", RenderSystem.getShaderFogStart());
         this.setFloat("FogEnd", RenderSystem.getShaderFogEnd());
         this.setVector("FogColor", RenderSystem.getShaderFogColor());
-        this.setInt("FogShape", RenderSystem.getShaderFogShape().getId());
+        this.setInt("FogShape", RenderSystem.getShaderFogShape().getIndex());
         this.setMatrix("TextureMatrix", RenderSystem.getTextureMatrix());
         this.setFloat("GameTime", RenderSystem.getShaderGameTime());
 
@@ -49,20 +49,20 @@ public interface MutableUniformAccessMixin {
             this.setVector("cameraBobOffset", SPBRevampedClient.cameraBobOffset);
         }
 
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         Window window = client.getWindow();
-        this.setVector("ScreenSize", window.getWidth(), window.getHeight());
+        this.setVector("ScreenSize", window.getScreenWidth(), window.getScreenHeight());
 
-        SpriteAtlasTexture texture = MinecraftClient.getInstance().getBakedModelManager().getAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE);
+        TextureAtlas texture = Minecraft.getInstance().getModelManager().getAtlas(InventoryMenu.BLOCK_ATLAS);
         if(texture != null) {
             this.setFloat("atlasAspectRatio", (float) texture.getHeight() / texture.getWidth());
         }
 
-        if(client.world != null && SPBRevampedClient.camera != null) {
-            this.setFloat("sunsetTimer", PoolroomsDayCycle.getDayTime(client.world));
-            SPBRevampedClient.setShadowUniforms((MutableUniformAccess) this, client.world);
+        if(client.level != null && SPBRevampedClient.camera != null) {
+            this.setFloat("sunsetTimer", PoolroomsDayCycle.getDayTime(client.level));
+            SPBRevampedClient.setShadowUniforms((MutableUniformAccess) this, client.level);
 
-            this.setFloat("warpAngle", SPBRevampedClient.getWarpTimer(client.world));
+            this.setFloat("warpAngle", SPBRevampedClient.getWarpTimer(client.level));
         }
 
     }

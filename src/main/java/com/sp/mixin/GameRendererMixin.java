@@ -1,5 +1,7 @@
 package com.sp.mixin;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import com.sp.SPBRevamped;
 import com.sp.SPBRevampedClient;
 import com.sp.compat.modmenu.ConfigStuff;
@@ -8,18 +10,16 @@ import com.sp.render.camera.CameraRoll;
 import com.sp.render.camera.CutsceneManager;
 import com.sp.util.MathStuff;
 import foundry.veil.api.client.render.VeilRenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.ShaderProgram;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.client.option.Perspective;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
+import net.minecraft.client.Camera;
+import net.minecraft.client.CameraType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.*;
@@ -32,13 +32,13 @@ public abstract class GameRendererMixin {
     @Unique
     Entity newCamera;
     @Unique
-    private static final Identifier shadowSolid = new Identifier(SPBRevamped.MOD_ID, "shadowmap/rendertype_solid");
+    private static final ResourceLocation shadowSolid = new ResourceLocation(SPBRevamped.MOD_ID, "shadowmap/rendertype_solid");
 
     @Unique
-    private static final Identifier shadowEntity = new Identifier(SPBRevamped.MOD_ID, "shadowmap/rendertype_entity");
+    private static final ResourceLocation shadowEntity = new ResourceLocation(SPBRevamped.MOD_ID, "shadowmap/rendertype_entity");
 
     @Unique
-    private static final Identifier warpEntity = new Identifier("spbrevamped", "warp_player");
+    private static final ResourceLocation warpEntity = new ResourceLocation("spbrevamped", "warp_player");
 
     @Unique
     private float smoothPitch = 0.0f;
@@ -46,45 +46,45 @@ public abstract class GameRendererMixin {
     @Unique
     private float smoothYaw = 0.0f;
 
-    @Shadow @Final MinecraftClient client;
+    @Shadow @Final Minecraft minecraft;
 
 
-    @Shadow public abstract void setBlockOutlineEnabled(boolean blockOutlineEnabled);
+    @Shadow public abstract void setRenderBlockOutline(boolean blockOutlineEnabled);
     @Shadow public abstract void tick();
-    @Shadow protected abstract void renderHand(MatrixStack matrices, Camera camera, float tickDelta);
+    @Shadow protected abstract void renderItemInHand(PoseStack matrices, Camera camera, float tickDelta);
 
-    @Shadow private static @Nullable ShaderProgram renderTypeEntityTranslucentProgram;
+    @Shadow private static @Nullable ShaderInstance rendertypeEntityTranslucentShader;
 
     @Shadow public abstract void render(float tickDelta, long startTime, boolean tick);
 
-    @Inject(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/GameRenderer;tiltViewWhenHurt(Lnet/minecraft/client/util/math/MatrixStack;F)V"))
-    public void renderWorld(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo ci) {
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;bobHurt(Lcom/mojang/blaze3d/vertex/PoseStack;F)V"))
+    public void renderWorld(float tickDelta, long limitTime, PoseStack matrices, CallbackInfo ci) {
         if (SPBRevampedClient.shouldRenderCameraEffect()) {
-            PlayerEntity player = this.client.player;
-            this.setBlockOutlineEnabled(true);
+            Player player = this.minecraft.player;
+            this.setRenderBlockOutline(true);
 
             if (player != null) {
                 CutsceneManager cutsceneManager = SPBRevampedClient.getCutsceneManager();
 
-                if (ConfigStuff.enableRealCamera && !cutsceneManager.isPlaying && client.getCameraEntity() == player) {
-                    matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(CameraRoll.doCameraRoll(player, tickDelta)));
+                if (ConfigStuff.enableRealCamera && !cutsceneManager.isPlaying && minecraft.getCameraEntity() == player) {
+                    matrices.mulPose(Axis.ZP.rotationDegrees(CameraRoll.doCameraRoll(player, tickDelta)));
                 } else if (cutsceneManager.isPlaying) {
-                    matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(cutsceneManager.cameraRotZ));
+                    matrices.mulPose(Axis.YP.rotationDegrees(cutsceneManager.cameraRotZ));
                 }
             }
         }
     }
 
-    @ModifyArg(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/RotationAxis;rotationDegrees(F)Lorg/joml/Quaternionf;", ordinal = 2))
+    @ModifyArg(method = "renderLevel", at = @At(value = "INVOKE", target = "Lcom/mojang/math/Axis;rotationDegrees(F)Lorg/joml/Quaternionf;", ordinal = 2))
     private float smoothPitch(float deg) {
         if (!SPBRevampedClient.shouldRenderCameraEffect()) {
             return deg;
         }
 
-        PlayerEntity player = this.client.player;
+        Player player = this.minecraft.player;
 
-        if(player != null && ConfigStuff.enableSmoothCamera && client.options.getPerspective() == Perspective.FIRST_PERSON){
-            this.smoothYaw = MathStuff.Lerp(this.smoothYaw, deg, ConfigStuff.cameraSmoothing, client.getLastFrameDuration());
+        if(player != null && ConfigStuff.enableSmoothCamera && minecraft.options.getCameraType() == CameraType.FIRST_PERSON){
+            this.smoothYaw = MathStuff.Lerp(this.smoothYaw, deg, ConfigStuff.cameraSmoothing, minecraft.getDeltaFrameTime());
             return this.smoothYaw;
         } else {
             this.smoothYaw = deg;
@@ -93,16 +93,16 @@ public abstract class GameRendererMixin {
         return deg;
     }
 
-    @ModifyArg(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/RotationAxis;rotationDegrees(F)Lorg/joml/Quaternionf;", ordinal = 3))
+    @ModifyArg(method = "renderLevel", at = @At(value = "INVOKE", target = "Lcom/mojang/math/Axis;rotationDegrees(F)Lorg/joml/Quaternionf;", ordinal = 3))
     private float smoothYaw(float deg) {
         if (!SPBRevampedClient.shouldRenderCameraEffect()) {
             return deg;
         }
 
-        PlayerEntity player = this.client.player;
+        Player player = this.minecraft.player;
 
-        if(player != null && ConfigStuff.enableSmoothCamera && client.options.getPerspective() == Perspective.FIRST_PERSON){
-            this.smoothPitch = MathStuff.Lerp(this.smoothPitch, deg, ConfigStuff.cameraSmoothing, client.getLastFrameDuration());
+        if(player != null && ConfigStuff.enableSmoothCamera && minecraft.options.getCameraType() == CameraType.FIRST_PERSON){
+            this.smoothPitch = MathStuff.Lerp(this.smoothPitch, deg, ConfigStuff.cameraSmoothing, minecraft.getDeltaFrameTime());
             return this.smoothPitch;
         } else {
             this.smoothPitch = deg;
@@ -120,33 +120,33 @@ public abstract class GameRendererMixin {
      * @reason
      */
     @Overwrite
-    private void bobView(MatrixStack matrices, float tickDelta){
-        if (this.client.getCameraEntity() instanceof PlayerEntity) {
-            PlayerEntity playerEntity = (PlayerEntity)this.client.getCameraEntity();
-            float f = playerEntity.horizontalSpeed - playerEntity.prevHorizontalSpeed;
-            float g = -(playerEntity.horizontalSpeed + f * tickDelta);
-            float h = MathHelper.lerp(tickDelta, playerEntity.prevStrideDistance, playerEntity.strideDistance);
+    private void bobView(PoseStack matrices, float tickDelta){
+        if (this.minecraft.getCameraEntity() instanceof Player) {
+            Player playerEntity = (Player)this.minecraft.getCameraEntity();
+            float f = playerEntity.walkDist - playerEntity.walkDistO;
+            float g = -(playerEntity.walkDist + f * tickDelta);
+            float h = Mth.lerp(tickDelta, playerEntity.oBob, playerEntity.bob);
 
-            Vector3f cameraBob = new Vector3f(MathHelper.sin(g * (float) Math.PI) * h * 0.5F, -Math.abs(MathHelper.cos(g * (float) Math.PI) * h), 0.0F);
+            Vector3f cameraBob = new Vector3f(Mth.sin(g * (float) Math.PI) * h * 0.5F, -Math.abs(Mth.cos(g * (float) Math.PI) * h), 0.0F);
             matrices.translate(cameraBob.x, cameraBob.y, cameraBob.z);
             SPBRevampedClient.cameraBobOffset = new Vector3f(cameraBob);
 
-            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.sin(g * (float) Math.PI) * h * 3.0F));
+            matrices.mulPose(Axis.ZP.rotationDegrees(Mth.sin(g * (float) Math.PI) * h * 3.0F));
             float multiplier = 5.0f;
             if (ConfigStuff.enableRealCamera) {
                 multiplier = 10.0f;
             }
-            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(Math.abs(MathHelper.cos(g * (float) Math.PI - 0.2F) * h) * multiplier));
+            matrices.mulPose(Axis.XP.rotationDegrees(Math.abs(Mth.cos(g * (float) Math.PI - 0.2F) * h) * multiplier));
         }
     }
 
 
     @Inject(method = {
-            "getRenderTypeSolidProgram",
-            "getRenderTypeCutoutProgram",
-            "getRenderTypeCutoutMippedProgram"
+            "getRendertypeSolidShader",
+            "getRendertypeCutoutShader",
+            "getRendertypeCutoutMippedShader"
     }, at = @At("HEAD"), cancellable = true)
-    private static void setSolidShader(CallbackInfoReturnable<ShaderProgram> cir) {
+    private static void setSolidShader(CallbackInfoReturnable<ShaderInstance> cir) {
         if(ShadowMapRenderer.isRenderingShadowMap()) {
             foundry.veil.api.client.render.shader.program.ShaderProgram shader = VeilRenderSystem.renderer().getShaderManager().getShader(shadowSolid);
             if (shader == null) {
@@ -157,13 +157,13 @@ public abstract class GameRendererMixin {
     }
 
     @Inject(method = {
-            "getRenderTypeEntityTranslucentProgram",
-            "getRenderTypeEntitySolidProgram",
-            "getRenderTypeEntityCutoutProgram",
-            "getRenderTypeEntityCutoutNoNullProgram",
-            "getRenderTypeEntityTranslucentCullProgram"
+            "getRendertypeEntityTranslucentShader",
+            "getRendertypeEntitySolidShader",
+            "getRendertypeEntityCutoutShader",
+            "getRendertypeEntityCutoutNoCullShader",
+            "getRendertypeEntityTranslucentCullShader"
     }, at = @At("TAIL"), cancellable = true)
-    private static void setPlayerShader(CallbackInfoReturnable<ShaderProgram> cir) {
+    private static void setPlayerShader(CallbackInfoReturnable<ShaderInstance> cir) {
         if(ShadowMapRenderer.isRenderingShadowMap()) {
             foundry.veil.api.client.render.shader.program.ShaderProgram shader = VeilRenderSystem.renderer().getShaderManager().getShader(shadowEntity);
             if (shader == null) {
@@ -174,30 +174,30 @@ public abstract class GameRendererMixin {
     }
 
     @Inject(method = {
-            "getRenderTypeEntityTranslucentProgram"
+            "getRendertypeEntityTranslucentShader"
     }, at = @At("TAIL"), cancellable = true)
-    private static void setPlayerWarpShader(CallbackInfoReturnable<ShaderProgram> cir) {
+    private static void setPlayerWarpShader(CallbackInfoReturnable<ShaderInstance> cir) {
         foundry.veil.api.client.render.shader.program.ShaderProgram shader = VeilRenderSystem.renderer().getShaderManager().getShader(warpEntity);
         if (shader == null || !SPBRevampedClient.shouldRenderWarp) {
-            cir.setReturnValue(renderTypeEntityTranslucentProgram);
+            cir.setReturnValue(rendertypeEntityTranslucentShader);
             return;
         }
         cir.setReturnValue(shader.toShaderInstance());
     }
 
-    @Redirect(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/GameRenderer;renderHand(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/Camera;F)V"))
-    private void redirect(GameRenderer instance, MatrixStack matrices, Camera camera, float tickDelta) {
+    @Redirect(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/Camera;F)V"))
+    private void redirect(GameRenderer instance, PoseStack matrices, Camera camera, float tickDelta) {
         if(!SPBRevampedClient.getCutsceneManager().isPlaying){
-            this.renderHand(matrices, camera, tickDelta);
+            this.renderItemInHand(matrices, camera, tickDelta);
         }
     }
 
-    @Redirect(method = "updateTargetedEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;getReachDistance()F"))
-    private float increaseReach(ClientPlayerInteractionManager instance){
+    @Redirect(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;getPickRange()F"))
+    private float increaseReach(MultiPlayerGameMode instance){
         return 6;
     }
 
-    @ModifyConstant(method = "updateTargetedEntity", constant = @Constant(doubleValue = 9.0))
+    @ModifyConstant(method = "pick", constant = @Constant(doubleValue = 9.0))
     private double increaseReach(double constant){
         return 36;
     }

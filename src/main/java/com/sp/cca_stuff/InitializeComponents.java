@@ -10,13 +10,13 @@ import dev.onyxstudios.cca.api.v3.entity.EntityComponentInitializer;
 import dev.onyxstudios.cca.api.v3.entity.RespawnCopyStrategy;
 import dev.onyxstudios.cca.api.v3.world.WorldComponentFactoryRegistry;
 import dev.onyxstudios.cca.api.v3.world.WorldComponentInitializer;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 public class InitializeComponents implements EntityComponentInitializer, WorldComponentInitializer {
-    public static final ComponentKey<PlayerComponent> PLAYER = ComponentRegistry.getOrCreate(Identifier.of(SPBRevamped.MOD_ID, "player"), PlayerComponent.class);
-    public static final ComponentKey<WorldEvents> EVENTS = ComponentRegistry.getOrCreate(Identifier.of(SPBRevamped.MOD_ID, "events"), WorldEvents.class);
-    public static final ComponentKey<SkinWalkerComponent> SKIN_WALKER = ComponentRegistry.getOrCreate(Identifier.of(SPBRevamped.MOD_ID, "skw"), SkinWalkerComponent.class);
-    public static final ComponentKey<SmilerComponent> SMILER = ComponentRegistry.getOrCreate(Identifier.of(SPBRevamped.MOD_ID, "smi"), SmilerComponent.class);
+    public static final ComponentKey<PlayerComponent> PLAYER = ComponentRegistry.getOrCreate(ResourceLocation.tryBuild(SPBRevamped.MOD_ID, "player"), PlayerComponent.class);
+    public static final ComponentKey<WorldEvents> EVENTS = ComponentRegistry.getOrCreate(ResourceLocation.tryBuild(SPBRevamped.MOD_ID, "events"), WorldEvents.class);
+    public static final ComponentKey<SkinWalkerComponent> SKIN_WALKER = ComponentRegistry.getOrCreate(ResourceLocation.tryBuild(SPBRevamped.MOD_ID, "skw"), SkinWalkerComponent.class);
+    public static final ComponentKey<SmilerComponent> SMILER = ComponentRegistry.getOrCreate(ResourceLocation.tryBuild(SPBRevamped.MOD_ID, "smi"), SmilerComponent.class);
 
 
     @Override

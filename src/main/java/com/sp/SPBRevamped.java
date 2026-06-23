@@ -24,16 +24,16 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.dedicated.MinecraftDedicatedServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.world.World;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.game.ClientboundSoundPacket;
+import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.bernie.geckolib.GeckoLib;
@@ -50,7 +50,7 @@ public class SPBRevamped implements ModInitializer {
 	public static final int FINAL_MAZE_SIZE = 5;
 
 	private static final UUID SLOW_SPEED_MODIFIER_ID = UUID.fromString("6a11099c-c3b8-4eba-9dad-f0c0bb997d35");
-	public static final EntityAttributeModifier SLOW_SPEED_MODIFIER = new EntityAttributeModifier(SLOW_SPEED_MODIFIER_ID, "SPBRevamped slow walk speed", -0.2f, EntityAttributeModifier.Operation.MULTIPLY_TOTAL);
+	public static final AttributeModifier SLOW_SPEED_MODIFIER = new AttributeModifier(SLOW_SPEED_MODIFIER_ID, "SPBRevamped slow walk speed", -0.2f, AttributeModifier.Operation.MULTIPLY_TOTAL);
 
 	@Override
 	public void onInitialize() {
@@ -88,12 +88,12 @@ public class SPBRevamped implements ModInitializer {
 		LOGGER.info("\"WOOOOOOOOOOOOOOOOOOOOOOOooooooooooooooooooooooooo..........\" -He said as he fell into the backrooms, never to be seen again.");
 
 		ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register(((player, origin, destination) -> {
-			PacketByteBuf buffer = PacketByteBufs.create();
+			FriendlyByteBuf buffer = PacketByteBufs.create();
 			ServerPlayNetworking.send(player, InitializePackets.RELOAD_LIGHTS, buffer);
 		}));
 
 		ServerPlayerEvents.AFTER_RESPAWN.register(((oldPlayer, newPlayer, alive) -> {
-			if(!BackroomsLevels.isInBackrooms(oldPlayer.getWorld().getRegistryKey())) {
+			if(!BackroomsLevels.isInBackrooms(oldPlayer.level().dimension())) {
 				return;
 			}
 
@@ -107,7 +107,7 @@ public class SPBRevamped implements ModInitializer {
 				newPlayer.getAbilities().invulnerable = true;
 				playerComponent.setShouldRender(false);
 				playerComponent.sync();
-				newPlayer.networkHandler.sendPacket(new PlaySoundS2CPacket(RegistryEntry.of(ModSounds.NO_ESCAPE), SoundCategory.AMBIENT, newPlayer.getPos().getX(), newPlayer.getPos().getY(), newPlayer.getPos().getZ(), 100.0f, 1.0f, newPlayer.getRandom().nextLong()));
+				newPlayer.connection.send(new ClientboundSoundPacket(Holder.direct(ModSounds.NO_ESCAPE), SoundSource.AMBIENT, newPlayer.position().x(), newPlayer.position().y(), newPlayer.position().z(), 100.0f, 1.0f, newPlayer.getRandom().nextLong()));
 
 				//After YOU CAN'T ESCAPE is over
 				executorService.schedule(() -> {
@@ -129,43 +129,43 @@ public class SPBRevamped implements ModInitializer {
 		}));
 	}
 
-	public static void sendCameraShakePacket(ServerPlayerEntity player, double speed, double trauma){
-		PacketByteBuf buffer = PacketByteBufs.create();
+	public static void sendCameraShakePacket(ServerPlayer player, double speed, double trauma){
+		FriendlyByteBuf buffer = PacketByteBufs.create();
 		buffer.writeDouble(speed);
 		buffer.writeDouble(trauma);
 		ServerPlayNetworking.send(player, InitializePackets.SCREEN_SHAKE, buffer);
 	}
 
-	public static void sendBlackScreenPacket(ServerPlayerEntity player, int duration, boolean shouldPauseSounds, boolean noEscape){
-		PacketByteBuf buffer = PacketByteBufs.create();
+	public static void sendBlackScreenPacket(ServerPlayer player, int duration, boolean shouldPauseSounds, boolean noEscape){
+		FriendlyByteBuf buffer = PacketByteBufs.create();
 		buffer.writeInt(duration);
 		buffer.writeBoolean(shouldPauseSounds);
 		buffer.writeBoolean(noEscape);
 		ServerPlayNetworking.send(player, InitializePackets.BLACK_SCREEN, buffer);
 	}
 
-	public static void sendPersonalPlaySoundPacket(ServerPlayerEntity player, SoundEvent sound, float volume, float pitch){
-		PacketByteBuf buffer = PacketByteBufs.create();
-		buffer.writeRegistryEntry(Registries.SOUND_EVENT.getIndexedEntries(), RegistryEntry.of(sound), (packetByteBuf, soundEvent) -> soundEvent.writeBuf(packetByteBuf));
+	public static void sendPersonalPlaySoundPacket(ServerPlayer player, SoundEvent sound, float volume, float pitch){
+		FriendlyByteBuf buffer = PacketByteBufs.create();
+		buffer.writeId(BuiltInRegistries.SOUND_EVENT.asHolderIdMap(), Holder.direct(sound), (packetByteBuf, soundEvent) -> soundEvent.writeToNetwork(packetByteBuf));
 		buffer.writeFloat(volume);
 		buffer.writeFloat(pitch);
 		ServerPlayNetworking.send(player, InitializePackets.SOUND, buffer);
 	}
 
-	public static void sendLevelTransitionLightsOutPacket(ServerPlayerEntity player, int time) {
+	public static void sendLevelTransitionLightsOutPacket(ServerPlayer player, int time) {
 		PlayerComponent component = InitializeComponents.PLAYER.get(player);
 		component.setTeleporting(true);
-		PacketByteBuf buffer = PacketByteBufs.create();
+		FriendlyByteBuf buffer = PacketByteBufs.create();
 		buffer.writeInt(time);
 		ServerPlayNetworking.send(player, InitializePackets.LEVEL_TRANSITION_LIGHTSOUT, buffer);
 	}
 
-    public static int getExitSpawnRadius(World world) {
+    public static int getExitSpawnRadius(Level world) {
         int exitRadius = ConfigStuff.exitSpawnRadius;
 
         if (world.getServer() != null) {
-            if (world.getServer().isDedicated()) {
-                exitRadius = ((NewServerProperties) ((MinecraftDedicatedServer) world.getServer()).getProperties()).getExitSpawnRadius();
+            if (world.getServer().isDedicatedServer()) {
+                exitRadius = ((NewServerProperties) ((DedicatedServer) world.getServer()).getProperties()).getExitSpawnRadius();
             }
         }
 

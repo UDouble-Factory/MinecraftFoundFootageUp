@@ -1,14 +1,12 @@
 package com.sp.render.pbr;
 
 import com.sp.SPBRevamped;
-import com.sp.init.ModBlocks;
-import it.unimi.dsi.fastutil.Function;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.minecraft.block.Block;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.registry.Registries;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.Block;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,15 +27,15 @@ public class BlockIdMap {
         init = true;
 
         //For every block, assign an ID
-        for(Block block : Registries.BLOCK){
-            RenderLayer renderLayer = RenderLayers.getBlockLayer(block.getDefaultState());
-            if(renderLayer == RenderLayer.getSolid()){
+        for(Block block : BuiltInRegistries.BLOCK){
+            RenderType renderLayer = ItemBlockRenderTypes.getChunkRenderType(block.defaultBlockState());
+            if(renderLayer == RenderType.solid()){
                 BlockIDs.put(block, 0);
-            } else if(renderLayer == RenderLayer.getCutout()){
+            } else if(renderLayer == RenderType.cutout()){
                 BlockIDs.put(block, 1);
-            } else if(renderLayer == RenderLayer.getCutoutMipped()){
+            } else if(renderLayer == RenderType.cutoutMipped()){
                 BlockIDs.put(block, 2);
-            } else if(renderLayer == RenderLayer.getTranslucent()){
+            } else if(renderLayer == RenderType.translucent()){
                 BlockIDs.put(block, 3);
             }
             numOfBlocks++;

@@ -1,5 +1,8 @@
 package com.sp.block.client.renderer;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import com.sp.SPBRevamped;
 import com.sp.SPBRevampedClient;
 import com.sp.block.custom.ThinFluorescentLightBlock;
@@ -8,64 +11,61 @@ import com.sp.compat.modmenu.ConfigStuff;
 import com.sp.render.RenderLayers;
 import foundry.veil.api.client.render.VeilRenderSystem;
 import foundry.veil.api.client.render.shader.program.ShaderProgram;
-import net.minecraft.block.enums.WallMountLocation;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.RotationAxis;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.state.properties.AttachFace;
 import org.joml.Matrix4f;
 
-import static net.minecraft.util.math.Direction.WEST;
+import static net.minecraft.core.Direction.WEST;
 
 public class ThinFluorescentLightBlockEntityRenderer implements BlockEntityRenderer<ThinFluorescentLightBlockEntity> {
-    private static final Identifier SHADER = new Identifier(SPBRevamped.MOD_ID, "light/fluorescent_light");
+    private static final ResourceLocation SHADER = new ResourceLocation(SPBRevamped.MOD_ID, "light/fluorescent_light");
 
 
-    public ThinFluorescentLightBlockEntityRenderer(BlockEntityRendererFactory.Context context){
+    public ThinFluorescentLightBlockEntityRenderer(BlockEntityRendererProvider.Context context){
 
     }
 
 
     @Override
-    public void render(ThinFluorescentLightBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        boolean blackout = entity.getCurrentState().get(ThinFluorescentLightBlock.BLACKOUT);
-        boolean on = entity.getCurrentState().get(ThinFluorescentLightBlock.ON);
+    public void render(ThinFluorescentLightBlockEntity entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+        Minecraft client = Minecraft.getInstance();
+        boolean blackout = entity.getCurrentState().getValue(ThinFluorescentLightBlock.BLACKOUT);
+        boolean on = entity.getCurrentState().getValue(ThinFluorescentLightBlock.ON);
 
         ShaderProgram shader = VeilRenderSystem.setShader(SHADER);
         if(shader == null){
             return;
         }
 
-        if(client.world != null) {
-            shader.setFloat("warAngle", SPBRevampedClient.getWarpTimer(client.world));
+        if(client.level != null) {
+            shader.setFloat("warAngle", SPBRevampedClient.getWarpTimer(client.level));
         }
 
         //don't render if blackout is active
         if(blackout || !on) return;
 
-        Direction facing = entity.getCurrentState().get(ThinFluorescentLightBlock.FACING);
-        WallMountLocation wall = entity.getCurrentState().get(ThinFluorescentLightBlock.FACE);
+        Direction facing = entity.getCurrentState().getValue(ThinFluorescentLightBlock.FACING);
+        AttachFace wall = entity.getCurrentState().getValue(ThinFluorescentLightBlock.FACE);
 
         matrices.translate(0.5, 0.5, 0.5);
-        if(wall == WallMountLocation.CEILING) {
-            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(facing.getOpposite().asRotation()));
+        if(wall == AttachFace.CEILING) {
+            matrices.mulPose(Axis.YP.rotationDegrees(facing.getOpposite().toYRot()));
         }
-        if(wall == WallMountLocation.WALL){
-            matrices.multiply(facing.getOpposite().getRotationQuaternion());
+        if(wall == AttachFace.WALL){
+            matrices.mulPose(facing.getOpposite().getRotation());
         }
-        if(wall == WallMountLocation.FLOOR){
-            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180));
-            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(facing.asRotation()));
+        if(wall == AttachFace.FLOOR){
+            matrices.mulPose(Axis.XP.rotationDegrees(180));
+            matrices.mulPose(Axis.YP.rotationDegrees(facing.toYRot()));
         }
         matrices.translate(-0.5, -0.5, -0.5);
-        Matrix4f matrix4f = matrices.peek().getPositionMatrix();
+        Matrix4f matrix4f = matrices.last().pose();
 
         shader.bind();
         this.renderCube(entity, matrix4f, vertexConsumers.getBuffer(this.getLayer()));
@@ -83,18 +83,18 @@ public class ThinFluorescentLightBlockEntityRenderer implements BlockEntityRende
     }
 
     private void renderFace(ThinFluorescentLightBlockEntity entity, Matrix4f matrix, VertexConsumer buffer, float f, float g, float h, float i, float j, float k, float l, float m, Direction direction) {
-            buffer.vertex(matrix, f, h, j).next();
-            buffer.vertex(matrix, g, h, k).next();
-            buffer.vertex(matrix, g, i, l).next();
-            buffer.vertex(matrix, f, i, m).next();
+            buffer.vertex(matrix, f, h, j).endVertex();
+            buffer.vertex(matrix, g, h, k).endVertex();
+            buffer.vertex(matrix, g, i, l).endVertex();
+            buffer.vertex(matrix, f, i, m).endVertex();
     }
 
-    protected RenderLayer getLayer() {
+    protected RenderType getLayer() {
         return RenderLayers.FLUORESCENT_LIGHT;
     }
 
     @Override
-    public int getRenderDistance() {
+    public int getViewDistance() {
         return (int) ConfigStuff.getLightRenderDistance();
     }
 }

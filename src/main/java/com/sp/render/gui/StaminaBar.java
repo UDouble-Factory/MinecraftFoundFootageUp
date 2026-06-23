@@ -5,24 +5,24 @@ import com.sp.SPBRevamped;
 import com.sp.cca_stuff.InitializeComponents;
 import com.sp.cca_stuff.PlayerComponent;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 
-import static net.minecraft.util.math.MathHelper.floor;
+import static net.minecraft.util.Mth.floor;
 
 public class StaminaBar implements HudRenderCallback {
-    private static final Identifier STAMINA_ICONS = new Identifier(SPBRevamped.MOD_ID, "textures/gui/stamina.png");
+    private static final ResourceLocation STAMINA_ICONS = new ResourceLocation(SPBRevamped.MOD_ID, "textures/gui/stamina.png");
     private Long fadeStart;
     private float fadeTimer;
 
 
     @Override
-    public void onHudRender(DrawContext drawContext, float tickDelta) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        PlayerEntity player = client.player;
+    public void onHudRender(GuiGraphics drawContext, float tickDelta) {
+        Minecraft client = Minecraft.getInstance();
+        Player player = client.player;
 
         if(player != null) {
             PlayerComponent component = InitializeComponents.PLAYER.get(player);
@@ -33,36 +33,36 @@ public class StaminaBar implements HudRenderCallback {
                 this.fadeStart = null;
                 this.fadeTimer = 0.0f;
 
-                drawContext.getMatrices().push();
-                drawContext.getMatrices().translate((float)(drawContext.getScaledWindowWidth() / 2), (float)(drawContext.getScaledWindowHeight() / 2), 0.0F);
-                drawContext.getMatrices().scale(0.2f,0.2f,0.2f);
-                drawContext.setShaderColor(1.0f, 1.0f, 1.0f, 0.25f);
+                drawContext.pose().pushPose();
+                drawContext.pose().translate((float)(drawContext.guiWidth() / 2), (float)(drawContext.guiHeight() / 2), 0.0F);
+                drawContext.pose().scale(0.2f,0.2f,0.2f);
+                drawContext.setColor(1.0f, 1.0f, 1.0f, 0.25f);
 
                 float normalizedStamina = 1.0f - (float) component.getStamina() / 300;
                 int offset = floor(normalizedStamina * 64);
 
-                drawContext.drawTexture(STAMINA_ICONS, width/2, -height/2, width, 0, 64, height);
-                drawContext.drawTexture(STAMINA_ICONS, width/2 + 4, -height/2 + offset, 0, offset, width, height);
+                drawContext.blit(STAMINA_ICONS, width/2, -height/2, width, 0, 64, height);
+                drawContext.blit(STAMINA_ICONS, width/2 + 4, -height/2 + offset, 0, offset, width, height);
 
-                drawContext.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                drawContext.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-                drawContext.getMatrices().pop();
+                drawContext.pose().popPose();
             } else if(this.fadeTimer < 1.0f) {
                 if(this.fadeStart == null){
-                    this.fadeStart = Util.getMeasuringTimeMs();
+                    this.fadeStart = Util.getMillis();
                 }
-                this.fadeTimer = Math.min((float) (Util.getMeasuringTimeMs() - this.fadeStart) / 1000L, 1.0f);
+                this.fadeTimer = Math.min((float) (Util.getMillis() - this.fadeStart) / 1000L, 1.0f);
 
-                drawContext.getMatrices().push();
-                drawContext.getMatrices().translate((float)(drawContext.getScaledWindowWidth() / 2), (float)(drawContext.getScaledWindowHeight() / 2), 0.0F);
-                drawContext.getMatrices().scale(0.2f,0.2f,0.2f);
+                drawContext.pose().pushPose();
+                drawContext.pose().translate((float)(drawContext.guiWidth() / 2), (float)(drawContext.guiHeight() / 2), 0.0F);
+                drawContext.pose().scale(0.2f,0.2f,0.2f);
 
-                drawContext.setShaderColor(1.0f, 1.0f, 1.0f, 0.25f * (1.0f - this.fadeTimer));
-                drawContext.drawTexture(STAMINA_ICONS, width/2, -height/2, width, 0, 64, height);
-                drawContext.drawTexture(STAMINA_ICONS, width/2 + 4, -height/2, 0, 0, width, height);
+                drawContext.setColor(1.0f, 1.0f, 1.0f, 0.25f * (1.0f - this.fadeTimer));
+                drawContext.blit(STAMINA_ICONS, width/2, -height/2, width, 0, 64, height);
+                drawContext.blit(STAMINA_ICONS, width/2 + 4, -height/2, 0, 0, width, height);
 
-                drawContext.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                drawContext.getMatrices().pop();
+                drawContext.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+                drawContext.pose().popPose();
 
             }
             RenderSystem.disableBlend();

@@ -5,11 +5,11 @@ import com.sp.SPBRevamped;
 import com.sp.cca_stuff.InitializeComponents;
 import com.sp.cca_stuff.PlayerComponent;
 import com.sp.init.ModSounds;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collection;
 import java.util.concurrent.Executors;
@@ -18,22 +18,22 @@ import java.util.concurrent.TimeUnit;
 
 public class CastToTheBackroomsCommand {
 
-    public static void register(CommandDispatcher<ServerCommandSource> serverCommandSourceCommandDispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
+    public static void register(CommandDispatcher<CommandSourceStack> serverCommandSourceCommandDispatcher, CommandBuildContext commandRegistryAccess, Commands.CommandSelection registrationEnvironment) {
         serverCommandSourceCommandDispatcher.register(
-                CommandManager.literal("casttothebackrooms")
-                        .requires(source -> source.hasPermissionLevel(2))
-                        .then(CommandManager.argument("targets", EntityArgumentType.players())
+                Commands.literal("casttothebackrooms")
+                        .requires(source -> source.hasPermission(2))
+                        .then(Commands.argument("targets", EntityArgument.players())
                                 .executes(context -> execute(
-                                                EntityArgumentType.getPlayers(context, "targets")
+                                                EntityArgument.getPlayers(context, "targets")
                                         )
                                 )
                         )
         );
     }
 
-    private static int execute(Collection<ServerPlayerEntity> targets) {
+    private static int execute(Collection<ServerPlayer> targets) {
         if (!targets.isEmpty()) {
-            for (ServerPlayerEntity serverPlayer : targets) {
+            for (ServerPlayer serverPlayer : targets) {
                 PlayerComponent component = InitializeComponents.PLAYER.get(serverPlayer);
                 ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
                 ScheduledExecutorService executorService2 = Executors.newSingleThreadScheduledExecutor();

@@ -1,25 +1,25 @@
 package com.sp.mixin.pbr;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import com.sp.render.VertexFormats;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.sp.render.RenderLayers;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.chunk.ChunkBuilder;
+import com.sp.render.VertexFormats;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Mixin(ChunkBuilder.BuiltChunk.RebuildTask.class)
+@Mixin(ChunkRenderDispatcher.RenderChunk.RebuildTask.class)
 public class ChunkBuilderMixin {
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/chunk/ChunkBuilder$BuiltChunk;beginBufferBuilding(Lnet/minecraft/client/render/BufferBuilder;)V"))
-    private void beginPBR(ChunkBuilder.BuiltChunk instance, BufferBuilder buffer, @Local RenderLayer renderLayer){
+    @Redirect(method = "compile", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;beginLayer(Lcom/mojang/blaze3d/vertex/BufferBuilder;)V"))
+    private void beginPBR(ChunkRenderDispatcher.RenderChunk instance, BufferBuilder buffer, @Local RenderType renderLayer){
         if(renderLayer == RenderLayers.getPbrLayer()){
-            buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.PBR);
+            buffer.begin(VertexFormat.Mode.QUADS, VertexFormats.PBR);
         } else {
-            buffer.begin(VertexFormat.DrawMode.QUADS, net.minecraft.client.render.VertexFormats.POSITION_COLOR_TEXTURE_LIGHT_NORMAL);
+            buffer.begin(VertexFormat.Mode.QUADS, com.mojang.blaze3d.vertex.DefaultVertexFormat.BLOCK);
         }
     }
 

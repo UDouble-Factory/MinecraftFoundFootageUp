@@ -3,7 +3,7 @@ package com.sp.cca_stuff;
 import com.sp.entity.custom.SmilerEntity;
 import dev.onyxstudios.cca.api.v3.component.sync.AutoSyncedComponent;
 import dev.onyxstudios.cca.api.v3.component.tick.ClientTickingComponent;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 
 public class SmilerComponent implements AutoSyncedComponent, ClientTickingComponent {
     private final SmilerEntity smiler;
@@ -45,21 +45,21 @@ public class SmilerComponent implements AutoSyncedComponent, ClientTickingCompon
     }
 
     @Override
-    public void readFromNbt(NbtCompound tag) {
+    public void readFromNbt(CompoundTag tag) {
         this.randomTexture = tag.getInt("randomTexture");
         this.shouldDisappear = tag.getBoolean("shouldDisappear");
     }
 
     @Override
-    public void writeToNbt(NbtCompound tag) {
+    public void writeToNbt(CompoundTag tag) {
         tag.putInt("randomTexture", this.randomTexture);
         tag.putBoolean("shouldDisappear", this.shouldDisappear);
     }
 
     @Override
     public void clientTick() {
-        if(this.smiler.age <= 30){
-            this.opacity = Math.min((float) this.smiler.age / 30, 1.0f);
+        if(this.smiler.tickCount <= 30){
+            this.opacity = Math.min((float) this.smiler.tickCount / 30, 1.0f);
             this.maxOpacity = this.opacity;
         }
 

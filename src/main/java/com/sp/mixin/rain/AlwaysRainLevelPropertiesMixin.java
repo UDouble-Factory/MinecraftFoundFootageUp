@@ -6,10 +6,10 @@ import com.sp.SPBRevampedClient;
 import com.sp.init.BackroomsLevels;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.world.level.LevelProperties;
+import net.minecraft.world.level.storage.PrimaryLevelData;
 import org.spongepowered.asm.mixin.Mixin;
 
-@Mixin(LevelProperties.class)
+@Mixin(PrimaryLevelData.class)
 public class AlwaysRainLevelPropertiesMixin {
     @WrapMethod(method = "getRainTime")
     private int spbrevamped$alwaysRainGetRainTime(Operation<Integer> original) {

@@ -9,16 +9,16 @@ import com.sp.entity.ik.parts.ik_chains.IKChain;
 import com.sp.entity.ik.parts.ik_chains.TargetReachingIKChain;
 import com.sp.entity.ik.parts.sever_limbs.ServerLimb;
 import dev.onyxstudios.cca.api.v3.component.sync.AutoSyncedComponent;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
 import java.util.UUID;
 
 public class SkinWalkerComponent implements AutoSyncedComponent {
     private final SkinWalkerEntity entity;
-    private PlayerEntity followTarget;
+    private Player followTarget;
     private boolean isChasing;
     private UUID targetPlayerUUID;
     private boolean shouldLookAtTarget;
@@ -87,8 +87,8 @@ public class SkinWalkerComponent implements AutoSyncedComponent {
     public boolean shouldLookAtTarget() {return shouldLookAtTarget;}
     public void setShouldLookAtTarget(boolean shouldLookAtTarget) {this.shouldLookAtTarget = shouldLookAtTarget;}
 
-    public PlayerEntity getFollowTarget() {return this.followTarget;}
-    public void setFollowTarget(PlayerEntity followTarget) {this.followTarget = followTarget;}
+    public Player getFollowTarget() {return this.followTarget;}
+    public void setFollowTarget(Player followTarget) {this.followTarget = followTarget;}
 
     public boolean shouldActNatural() {return this.shouldActNatural;}
     public void setShouldActNatural(boolean shouldActNatural) {this.shouldActNatural = shouldActNatural;}
@@ -128,18 +128,18 @@ public class SkinWalkerComponent implements AutoSyncedComponent {
 
 
     @Override
-    public void readFromNbt(NbtCompound tag) {
+    public void readFromNbt(CompoundTag tag) {
         this.isSneaking = tag.getBoolean("isSneaking");
-        this.targetPlayerUUID = tag.getUuid("targetPlayerUUID");
+        this.targetPlayerUUID = tag.getUUID("targetPlayerUUID");
         this.isChasing = tag.getBoolean("isChasing");
         this.trueForm = tag.getBoolean("trueForm");
         this.beginReveal = tag.getBoolean("beginReveal");
     }
 
     @Override
-    public void writeToNbt(NbtCompound tag) {
+    public void writeToNbt(CompoundTag tag) {
         tag.putBoolean("isSneaking", this.isSneaking);
-        tag.putUuid("targetPlayerUUID", this.targetPlayerUUID);
+        tag.putUUID("targetPlayerUUID", this.targetPlayerUUID);
         tag.putBoolean("isChasing", this.isChasing);
         tag.putBoolean("trueForm", this.trueForm);
         tag.putBoolean("beginReveal", this.beginReveal);

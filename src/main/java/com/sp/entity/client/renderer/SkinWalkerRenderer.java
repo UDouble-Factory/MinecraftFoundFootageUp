@@ -1,5 +1,7 @@
 package com.sp.entity.client.renderer;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.sp.SPBRevamped;
 import com.sp.cca_stuff.InitializeComponents;
 import com.sp.cca_stuff.SkinWalkerComponent;
@@ -12,16 +14,14 @@ import com.sp.entity.ik.parts.sever_limbs.ServerLimb;
 import com.sp.render.RenderLayers;
 import it.unimi.dsi.fastutil.ints.IntIntImmutablePair;
 import it.unimi.dsi.fastutil.ints.IntIntPair;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -37,13 +37,13 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntity> {
-    private final Identifier SPIDER_LEGS_TEXTURE = new Identifier(SPBRevamped.MOD_ID, "textures/entity/skinwalker/skinwalker_legs_texture.png");
-    private final Identifier HEAD_TEXTURE = new Identifier(SPBRevamped.MOD_ID, "textures/entity/skinwalker/final_form_head_texture.png");
-    private final Identifier EYES_TEXTURE = new Identifier(SPBRevamped.MOD_ID, "textures/entity/skinwalker/skinwalker_eyes.png");
+    private final ResourceLocation SPIDER_LEGS_TEXTURE = new ResourceLocation(SPBRevamped.MOD_ID, "textures/entity/skinwalker/skinwalker_legs_texture.png");
+    private final ResourceLocation HEAD_TEXTURE = new ResourceLocation(SPBRevamped.MOD_ID, "textures/entity/skinwalker/final_form_head_texture.png");
+    private final ResourceLocation EYES_TEXTURE = new ResourceLocation(SPBRevamped.MOD_ID, "textures/entity/skinwalker/skinwalker_eyes.png");
     private final List<String> spiderLegBones = new ArrayList<>();
 
 
-    public SkinWalkerRenderer(EntityRendererFactory.Context renderManager) {
+    public SkinWalkerRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new SkinWalkerModel());
         this.addRenderLayer(new IKDebugRenderLayer<>(this));
 
@@ -70,28 +70,28 @@ public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntit
 
 
     @Override
-    public void preRender(MatrixStack poseStack, SkinWalkerEntity animatable, BakedGeoModel model, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+    public void preRender(PoseStack poseStack, SkinWalkerEntity animatable, BakedGeoModel model, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
 
-        float speed = animatable.limbAnimator.getSpeed(partialTick);
-        float pos = animatable.limbAnimator.getPos(partialTick);
+        float speed = animatable.walkAnimation.speed(partialTick);
+        float pos = animatable.walkAnimation.position(partialTick);
 
         if (speed > 1.0F) {
             speed = 1.0F;
         }
 
-        float h = MathHelper.lerpAngleDegrees(partialTick, animatable.prevBodyYaw, animatable.bodyYaw);
-        float j = MathHelper.lerpAngleDegrees(partialTick, animatable.prevHeadYaw, animatable.headYaw);
+        float h = Mth.rotLerp(partialTick, animatable.yBodyRotO, animatable.yBodyRot);
+        float j = Mth.rotLerp(partialTick, animatable.yHeadRotO, animatable.yHeadRot);
         float yaw = j- h;
 
-        float pitch = MathHelper.lerp(partialTick, animatable.prevPitch, animatable.getPitch());
+        float pitch = Mth.lerp(partialTick, animatable.xRotO, animatable.getXRot());
 
         float animationProgress = this.getAnimationProgress(animatable, partialTick);
         this.animateModel(animatable, pos, speed, animationProgress, -yaw, -pitch, partialTick);
     }
 
     @Override
-    public void render(SkinWalkerEntity entity, float entityYaw, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight) {
+    public void render(SkinWalkerEntity entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
 
         if(InitializeComponents.SKIN_WALKER.get(entity).isInTrueForm()) {
@@ -127,7 +127,7 @@ public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntit
                 }
                 offset.mul(0.25f);
 
-                body.setWorldSpaceMatrix(new Matrix4f().identity().translate(offset.sub(entity.getLerpedPos(partialTicks).toVector3f()).mul(0.2f)));
+                body.setWorldSpaceMatrix(new Matrix4f().identity().translate(offset.sub(entity.getPosition(partialTicks).toVector3f()).mul(0.2f)));
 
                 pitchOffset = 35;
             }
@@ -140,13 +140,13 @@ public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntit
 
 
             if(!component.isInTrueForm()) {
-                right_arm.setRotX(MathHelper.cos(limbPos * 0.6662F + (float) Math.PI) * 2.0F * limbSpeed * 0.5F);
-                left_arm.setRotX(MathHelper.cos(limbPos * 0.6662F) * 2.0F * limbSpeed * 0.5F);
+                right_arm.setRotX(Mth.cos(limbPos * 0.6662F + (float) Math.PI) * 2.0F * limbSpeed * 0.5F);
+                left_arm.setRotX(Mth.cos(limbPos * 0.6662F) * 2.0F * limbSpeed * 0.5F);
 
                 right_arm.setRotZ(0.0F);
                 left_arm.setRotZ(0.0F);
-                right_leg.setRotX(MathHelper.cos(limbPos * 0.6662F) * 1.4F * limbSpeed);
-                left_leg.setRotX(MathHelper.cos(limbPos * 0.6662F + (float) Math.PI) * 1.4F * limbSpeed);
+                right_leg.setRotX(Mth.cos(limbPos * 0.6662F) * 1.4F * limbSpeed);
+                left_leg.setRotX(Mth.cos(limbPos * 0.6662F + (float) Math.PI) * 1.4F * limbSpeed);
                 right_leg.setRotY(0.005F);
                 left_leg.setRotY(-0.005F);
                 right_leg.setRotZ(0.005F);
@@ -183,40 +183,40 @@ public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntit
 
 
     private void punch(SkinWalkerEntity entity, float tickDelta, GeoBone body, GeoBone head, GeoBone rightArm, GeoBone leftArm){
-        if (!(entity.getHandSwingProgress(tickDelta) <= 0.0F)) {
-            float f = entity.getHandSwingProgress(tickDelta);
-            body.setRotY(MathHelper.sin(MathHelper.sqrt(f) * (float) (Math.PI * 2)) * 0.2F);
+        if (!(entity.getAttackAnim(tickDelta) <= 0.0F)) {
+            float f = entity.getAttackAnim(tickDelta);
+            body.setRotY(Mth.sin(Mth.sqrt(f) * (float) (Math.PI * 2)) * 0.2F);
 
-            rightArm.setPivotZ(-MathHelper.sin(body.getRotY()) * 5.0F);
-            rightArm.setPivotX(MathHelper.cos(body.getRotY()) * 5.0F);
-            leftArm.setPivotZ(MathHelper.sin(body.getRotY()) * 5.0F);
-            leftArm.setPivotX(-MathHelper.cos(body.getRotY()) * 5.0F);
+            rightArm.setPivotZ(-Mth.sin(body.getRotY()) * 5.0F);
+            rightArm.setPivotX(Mth.cos(body.getRotY()) * 5.0F);
+            leftArm.setPivotZ(Mth.sin(body.getRotY()) * 5.0F);
+            leftArm.setPivotX(-Mth.cos(body.getRotY()) * 5.0F);
             rightArm.setRotY((rightArm.getRotY() + body.getRotY()));
             leftArm.setRotY(-(leftArm.getRotY() + body.getRotY()));
             leftArm.setRotX(-(leftArm.getRotX() + body.getRotY()));
-            f = 1.0F - entity.getHandSwingProgress(tickDelta);
+            f = 1.0F - entity.getAttackAnim(tickDelta);
             f *= f;
             f *= f;
             f = 1.0F - f;
-            float g = MathHelper.sin(f * (float) Math.PI);
-            float h = MathHelper.sin(entity.getHandSwingProgress(tickDelta) * (float) Math.PI) * -(-head.getRotX() - 0.7F) * 0.75F;
+            float g = Mth.sin(f * (float) Math.PI);
+            float h = Mth.sin(entity.getAttackAnim(tickDelta) * (float) Math.PI) * -(-head.getRotX() - 0.7F) * 0.75F;
             rightArm.setRotX(-(rightArm.getRotX() - g * 1.2F - h));
             rightArm.setRotY(-(rightArm.getRotY() + body.getRotY() * 2.0F));
-            rightArm.setRotZ((rightArm.getRotZ() + MathHelper.sin(entity.getHandSwingProgress(tickDelta) * (float) Math.PI) * -0.4F));
+            rightArm.setRotZ((rightArm.getRotZ() + Mth.sin(entity.getAttackAnim(tickDelta) * (float) Math.PI) * -0.4F));
         }
     }
 
     private void swingArm(GeoBone arm, float animationProgress, float sigma){
-        arm.setRotZ(arm.getRotZ() + sigma * (MathHelper.cos(animationProgress * 0.09F) * 0.05F + 0.05F));
-        arm.setRotX(arm.getRotX() + sigma * MathHelper.sin(animationProgress * 0.067F) * 0.05F);
+        arm.setRotZ(arm.getRotZ() + sigma * (Mth.cos(animationProgress * 0.09F) * 0.05F + 0.05F));
+        arm.setRotX(arm.getRotX() + sigma * Mth.sin(animationProgress * 0.067F) * 0.05F);
     }
 
     protected float getAnimationProgress(Entity entity, float tickDelta) {
-        return (float)entity.age + tickDelta;
+        return (float)entity.tickCount + tickDelta;
     }
 
     @Override
-    protected Identifier getTextureOverrideForBone(GeoBone bone, SkinWalkerEntity animatable, float partialTick) {
+    protected ResourceLocation getTextureOverrideForBone(GeoBone bone, SkinWalkerEntity animatable, float partialTick) {
         SkinWalkerComponent component = InitializeComponents.SKIN_WALKER.get(animatable);
         String name = bone.getName();
 
@@ -233,20 +233,20 @@ public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntit
         return null;
     }
 
-    protected boolean boneRenderOverride(SkinWalkerEntity animatable, MatrixStack poseStack, GeoBone bone, VertexConsumerProvider bufferSource) {
+    protected boolean boneRenderOverride(SkinWalkerEntity animatable, PoseStack poseStack, GeoBone bone, MultiBufferSource bufferSource) {
         SkinWalkerComponent component = InitializeComponents.SKIN_WALKER.get(animatable);
 
         if(component.isInTrueForm()) {
             if (bone.getName().equals("headwear")) {
-                VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderLayer.getEyes(EYES_TEXTURE));
+                VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.eyes(EYES_TEXTURE));
 
                 if (bone.isHidden())
                     return false;
 
                 for (GeoCube cube : bone.getCubes()) {
-                    poseStack.push();
-                    renderCube(poseStack, cube, vertexConsumer, 15728640, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, 1.0F);
-                    poseStack.pop();
+                    poseStack.pushPose();
+                    renderCube(poseStack, cube, vertexConsumer, 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                    poseStack.popPose();
                 }
                 return true;
             }
@@ -255,11 +255,11 @@ public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntit
     }
 
     @Override
-    public Vec3d getPositionOffset(SkinWalkerEntity entity, float tickDelta) {
+    public Vec3 getRenderOffset(SkinWalkerEntity entity, float tickDelta) {
         if (entity.component.isSneaking()) {
-            return new Vec3d(0, -0.125, 0);
+            return new Vec3(0, -0.125, 0);
         }
-        return super.getPositionOffset(entity, tickDelta);
+        return super.getRenderOffset(entity, tickDelta);
     }
 
     @Override
@@ -292,11 +292,11 @@ public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntit
     }
 
     @Override
-    public void renderRecursively(MatrixStack poseStack, SkinWalkerEntity animatable, GeoBone bone, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+    public void renderRecursively(PoseStack poseStack, SkinWalkerEntity animatable, GeoBone bone, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         if (bone == null) return;
-        poseStack.push();
+        poseStack.pushPose();
         if (bone instanceof MowzieGeoBone mowzieGeoBone && mowzieGeoBone.isForceMatrixTransform() && animatable != null) {
-            MatrixStack.Entry last = poseStack.peek();
+            PoseStack.Pose last = poseStack.last();
             double d0 = animatable.getX();
             double d1 = animatable.getY();
             double d2 = animatable.getZ();
@@ -304,8 +304,8 @@ public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntit
             matrix4f = matrix4f.translate(0, -0.01f, 0);
             matrix4f = matrix4f.translate((float) -d0, (float) -d1, (float) -d2);
             matrix4f = matrix4f.mul(bone.getWorldSpaceMatrix());
-            last.getPositionMatrix().mul(matrix4f);
-            last.getNormalMatrix().mul(bone.getWorldSpaceNormal());
+            last.pose().mul(matrix4f);
+            last.normal().mul(bone.getWorldSpaceNormal());
 
             RenderUtils.translateAwayFromPivotPoint(poseStack, bone);
         } else {
@@ -316,7 +316,7 @@ public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntit
                     if (bone.getName().equals("body")) {
                         Matrix4f matrix4f = new Matrix4f();
                         matrix4f = matrix4f.mul(bone.getWorldSpaceMatrix());
-                        poseStack.peek().getPositionMatrix().mul(matrix4f);
+                        poseStack.last().pose().mul(matrix4f);
                     }
                 }
             }
@@ -331,22 +331,22 @@ public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntit
 
             if (bone instanceof MowzieGeoBone mowzieGeoBone) {
                 if (!mowzieGeoBone.inheritRotation && !mowzieGeoBone.inheritTranslation) {
-                    poseStack.peek().getPositionMatrix().identity();
-                    poseStack.peek().getPositionMatrix().mul(this.entityRenderTranslations);
+                    poseStack.last().pose().identity();
+                    poseStack.last().pose().mul(this.entityRenderTranslations);
                 } else if (!mowzieGeoBone.inheritRotation) {
-                    Vector4f t = new Vector4f().mul(poseStack.peek().getPositionMatrix());
-                    poseStack.peek().getPositionMatrix().identity();
+                    Vector4f t = new Vector4f().mul(poseStack.last().pose());
+                    poseStack.last().pose().identity();
                     poseStack.translate(t.x, t.y, t.z);
                 } else if (!mowzieGeoBone.inheritTranslation) {
-                    MowzieGeoBone.removeMatrixTranslation(poseStack.peek().getPositionMatrix());
-                    poseStack.peek().getPositionMatrix().mul(this.entityRenderTranslations);
+                    MowzieGeoBone.removeMatrixTranslation(poseStack.last().pose());
+                    poseStack.last().pose().mul(this.entityRenderTranslations);
                 }
             }
 
             if (rotOverride) {
                 MowzieGeoBone mowzieGeoBone = (MowzieGeoBone) bone;
-                poseStack.peek().getPositionMatrix().mul(mowzieGeoBone.rotationOverride);
-                poseStack.peek().getNormalMatrix().mul(new Matrix3f(mowzieGeoBone.rotationOverride));
+                poseStack.last().pose().mul(mowzieGeoBone.rotationOverride);
+                poseStack.last().normal().mul(new Matrix3f(mowzieGeoBone.rotationOverride));
             } else {
                 RenderUtils.rotateMatrixAroundBone(poseStack, bone);
             }
@@ -354,20 +354,20 @@ public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntit
             RenderUtils.scaleMatrixForBone(poseStack, bone);
 
             if (bone.isTrackingMatrices()) {
-                Matrix4f poseState = new Matrix4f(poseStack.peek().getPositionMatrix());
+                Matrix4f poseState = new Matrix4f(poseStack.last().pose());
                 Matrix4f localMatrix = RenderUtils.invertAndMultiplyMatrices(poseState, this.entityRenderTranslations);
 
                 bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-                bone.setLocalSpaceMatrix(RenderUtils.translateMatrix(localMatrix, getPositionOffset(this.animatable, 1).toVector3f()));
-                bone.setWorldSpaceMatrix(RenderUtils.translateMatrix(new Matrix4f(localMatrix), this.animatable.getPos().toVector3f()));
+                bone.setLocalSpaceMatrix(RenderUtils.translateMatrix(localMatrix, getRenderOffset(this.animatable, 1).toVector3f()));
+                bone.setWorldSpaceMatrix(RenderUtils.translateMatrix(new Matrix4f(localMatrix), this.animatable.position().toVector3f()));
             }
 
             RenderUtils.translateAwayFromPivotPoint(poseStack, bone);
         }
 
         this.textureOverride = getTextureOverrideForBone(bone, this.animatable, partialTick);
-        Identifier texture = this.textureOverride == null ? getTexture(this.animatable) : this.textureOverride;
-        RenderLayer renderTypeOverride = getRenderTypeOverrideForBone(bone, this.animatable, texture, bufferSource, partialTick);
+        ResourceLocation texture = this.textureOverride == null ? getTextureLocation(this.animatable) : this.textureOverride;
+        RenderType renderTypeOverride = getRenderTypeOverrideForBone(bone, this.animatable, texture, bufferSource, partialTick);
 
         if (texture != null && renderTypeOverride == null)
             renderTypeOverride = getRenderType(this.animatable, texture, bufferSource, partialTick);
@@ -379,18 +379,18 @@ public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntit
             super.renderCubesOfBone(poseStack, bone, buffer, packedLight, packedOverlay, red, green, blue, alpha);
 
         if (renderTypeOverride != null)
-            buffer = bufferSource.getBuffer(getRenderType(this.animatable, getTexture(this.animatable), bufferSource, partialTick));
+            buffer = bufferSource.getBuffer(getRenderType(this.animatable, getTextureLocation(this.animatable), bufferSource, partialTick));
 
         if (!isReRender)
             applyRenderLayersForBone(poseStack, animatable, bone, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
 
         renderChildBones(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
 
-        poseStack.pop();
+        poseStack.popPose();
     }
 
     @Override
-    protected @Nullable RenderLayer getRenderTypeOverrideForBone(GeoBone bone, SkinWalkerEntity animatable, Identifier texturePath, VertexConsumerProvider bufferSource, float partialTick) {
+    protected @Nullable RenderType getRenderTypeOverrideForBone(GeoBone bone, SkinWalkerEntity animatable, ResourceLocation texturePath, MultiBufferSource bufferSource, float partialTick) {
         if (Objects.equals(bone.getName(), "head") && InitializeComponents.SKIN_WALKER.get(animatable).isInTrueForm()) {
             return RenderLayers.getDistortedEntity(texturePath);
         }

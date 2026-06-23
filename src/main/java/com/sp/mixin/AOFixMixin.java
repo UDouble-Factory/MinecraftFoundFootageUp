@@ -3,11 +3,11 @@ package com.sp.mixin;
 import foundry.veil.api.client.render.VeilRenderSystem;
 import foundry.veil.api.client.render.deferred.VeilDeferredRenderer;
 import net.fabricmc.fabric.impl.client.indigo.Indigo;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.block.BlockModelRenderer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockRenderView;
+import net.minecraft.client.renderer.block.ModelBlockRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -23,63 +23,63 @@ import java.util.BitSet;
 /**
  * Veil overrides Fabric's fix for Vanilla lighting which makes it appear blocky <p>
  * This is a combination of both fabric's {@link net.fabricmc.fabric.impl.client.indigo.renderer.aocalc.AoCalculator}
- * and Minecraft's {@link net.minecraft.client.render.block.BlockModelRenderer.AmbientOcclusionCalculator}
+ * and Minecraft's {@link net.minecraft.client.renderer.block.ModelBlockRenderer.AmbientOcclusionFace}
  * to make the lighting smooth again
  */
 @SuppressWarnings("UnstableApiUsage")
-@Mixin(targets = "net.minecraft.client.render.block.BlockModelRenderer$AmbientOcclusionCalculator")
+@Mixin(targets = "net.minecraft.client.renderer.block.ModelBlockRenderer$AmbientOcclusionFace")
 public abstract class AOFixMixin {
 
     @Shadow @Final
     float[] brightness;
 
     @Shadow @Final
-    int[] light;
+    int[] lightmap;
 
-    @Shadow protected abstract int getBrightness(int i, int j, int k, int l, float f, float g, float h, float m);
+    @Shadow protected abstract int blend(int i, int j, int k, int l, float f, float g, float h, float m);
 
 
-    @Inject(method = "apply", at = @At("HEAD"), cancellable = true)
-    private void fix(BlockRenderView world, BlockState state, BlockPos pos, Direction direction, float[] box, BitSet flags, boolean shaded, CallbackInfo ci){
+    @Inject(method = "calculate", at = @At("HEAD"), cancellable = true)
+    private void fix(BlockAndTintGetter world, BlockState state, BlockPos pos, Direction direction, float[] box, BitSet flags, boolean shaded, CallbackInfo ci){
         ci.cancel();
 
-        BlockPos lightPos = flags.get(0) ? pos.offset(direction) : pos;
-        BlockModelRenderer.NeighborData neighborData = BlockModelRenderer.NeighborData.getData(direction);
-        BlockPos.Mutable searchPos = new BlockPos.Mutable();
+        BlockPos lightPos = flags.get(0) ? pos.relative(direction) : pos;
+        ModelBlockRenderer.AdjacencyInfo neighborData = ModelBlockRenderer.AdjacencyInfo.fromFacing(direction);
+        BlockPos.MutableBlockPos searchPos = new BlockPos.MutableBlockPos();
         BlockState searchState;
-        BlockModelRenderer.BrightnessCache brightnessCache = BlockModelRenderer.BRIGHTNESS_CACHE.get();
+        ModelBlockRenderer.Cache brightnessCache = ModelBlockRenderer.CACHE.get();
 
 
-        searchPos.set(lightPos, neighborData.faces[0]);
+        searchPos.setWithOffset(lightPos, neighborData.corners[0]);
         searchState = world.getBlockState(searchPos);
-        int light1 = brightnessCache.getInt(searchState, world, searchPos);
-        float ao1 = brightnessCache.getFloat(searchState, world, searchPos);
+        int light1 = brightnessCache.getLightColor(searchState, world, searchPos);
+        float ao1 = brightnessCache.getShadeBrightness(searchState, world, searchPos);
 
-        boolean bl = !searchState.shouldBlockVision(world, searchPos) || searchState.getOpacity(world, searchPos) == 0;
+        boolean bl = !searchState.isViewBlocking(world, searchPos) || searchState.getLightBlock(world, searchPos) == 0;
 
 
-        searchPos.set(lightPos, neighborData.faces[1]);
+        searchPos.setWithOffset(lightPos, neighborData.corners[1]);
         searchState = world.getBlockState(searchPos);
-        int light2 = brightnessCache.getInt(searchState, world, searchPos);
-        float ao2 = brightnessCache.getFloat(searchState, world, searchPos);
+        int light2 = brightnessCache.getLightColor(searchState, world, searchPos);
+        float ao2 = brightnessCache.getShadeBrightness(searchState, world, searchPos);
 
-        boolean bl2 = !searchState.shouldBlockVision(world, searchPos) || searchState.getOpacity(world, searchPos) == 0;
+        boolean bl2 = !searchState.isViewBlocking(world, searchPos) || searchState.getLightBlock(world, searchPos) == 0;
 
 
-        searchPos.set(lightPos, neighborData.faces[2]);
+        searchPos.setWithOffset(lightPos, neighborData.corners[2]);
         searchState = world.getBlockState(searchPos);
-        int light3 = brightnessCache.getInt(searchState, world, searchPos);
-        float ao3 = brightnessCache.getFloat(searchState, world, searchPos);
+        int light3 = brightnessCache.getLightColor(searchState, world, searchPos);
+        float ao3 = brightnessCache.getShadeBrightness(searchState, world, searchPos);
 
-        boolean bl3 = !searchState.shouldBlockVision(world, searchPos) || searchState.getOpacity(world, searchPos) == 0;
+        boolean bl3 = !searchState.isViewBlocking(world, searchPos) || searchState.getLightBlock(world, searchPos) == 0;
 
 
-        searchPos.set(lightPos, neighborData.faces[3]);
+        searchPos.setWithOffset(lightPos, neighborData.corners[3]);
         searchState = world.getBlockState(searchPos);
-        int light4 = brightnessCache.getInt(searchState, world, searchPos);
-        float ao4 = brightnessCache.getFloat(searchState, world, searchPos);
+        int light4 = brightnessCache.getLightColor(searchState, world, searchPos);
+        float ao4 = brightnessCache.getShadeBrightness(searchState, world, searchPos);
 
-        boolean bl4 = !searchState.shouldBlockVision(world, searchPos) || searchState.getOpacity(world, searchPos) == 0;
+        boolean bl4 = !searchState.isViewBlocking(world, searchPos) || searchState.getLightBlock(world, searchPos) == 0;
 
 
 
@@ -89,10 +89,10 @@ public abstract class AOFixMixin {
             n = ao1;
             o = light1;
         } else {
-            searchPos.set(lightPos).move(neighborData.faces[0]).move(neighborData.faces[2]);
+            searchPos.set(lightPos).move(neighborData.corners[0]).move(neighborData.corners[2]);
             searchState = world.getBlockState(searchPos);
-            n = brightnessCache.getFloat(searchState, world, searchPos);
-            o = brightnessCache.getInt(searchState, world, searchPos);
+            n = brightnessCache.getShadeBrightness(searchState, world, searchPos);
+            o = brightnessCache.getLightColor(searchState, world, searchPos);
         }
 
         float p;
@@ -101,10 +101,10 @@ public abstract class AOFixMixin {
             p = ao1;
             q = light1;
         } else {
-            searchPos.set(lightPos).move(neighborData.faces[0]).move(neighborData.faces[3]);
+            searchPos.set(lightPos).move(neighborData.corners[0]).move(neighborData.corners[3]);
             searchState = world.getBlockState(searchPos);
-            p = brightnessCache.getFloat(searchState, world, searchPos);
-            q = brightnessCache.getInt(searchState, world, searchPos);
+            p = brightnessCache.getShadeBrightness(searchState, world, searchPos);
+            q = brightnessCache.getLightColor(searchState, world, searchPos);
         }
 
         float r;
@@ -113,10 +113,10 @@ public abstract class AOFixMixin {
             r = ao1;
             s = light1;
         } else {
-            searchPos.set(lightPos).move(neighborData.faces[1]).move(neighborData.faces[2]);
+            searchPos.set(lightPos).move(neighborData.corners[1]).move(neighborData.corners[2]);
             searchState = world.getBlockState(searchPos);
-            r = brightnessCache.getFloat(searchState, world, searchPos);
-            s = brightnessCache.getInt(searchState, world, searchPos);
+            r = brightnessCache.getShadeBrightness(searchState, world, searchPos);
+            s = brightnessCache.getLightColor(searchState, world, searchPos);
         }
 
         float t;
@@ -125,70 +125,70 @@ public abstract class AOFixMixin {
             t = ao1;
             u = light1;
         } else {
-            searchPos.set(lightPos).move(neighborData.faces[1]).move(neighborData.faces[3]);
+            searchPos.set(lightPos).move(neighborData.corners[1]).move(neighborData.corners[3]);
             searchState = world.getBlockState(searchPos);
-            t = brightnessCache.getFloat(searchState, world, searchPos);
-            u = brightnessCache.getInt(searchState, world, searchPos);
+            t = brightnessCache.getShadeBrightness(searchState, world, searchPos);
+            u = brightnessCache.getLightColor(searchState, world, searchPos);
         }
 
-        int v = brightnessCache.getInt(state, world, pos);
-        searchPos.set(pos, direction);
+        int v = brightnessCache.getLightColor(state, world, pos);
+        searchPos.setWithOffset(pos, direction);
         searchState = world.getBlockState(searchPos);
 
 
-        if (flags.get(0) || !searchState.isOpaqueFullCube(world, searchPos)) {
-            v = brightnessCache.getInt(searchState, world, searchPos);
+        if (flags.get(0) || !searchState.isSolidRender(world, searchPos)) {
+            v = brightnessCache.getLightColor(searchState, world, searchPos);
         }
 
         float w = flags.get(0)
-                ? brightnessCache.getFloat(world.getBlockState(lightPos), world, lightPos)
-                : brightnessCache.getFloat(world.getBlockState(pos), world, pos);
+                ? brightnessCache.getShadeBrightness(world.getBlockState(lightPos), world, lightPos)
+                : brightnessCache.getShadeBrightness(world.getBlockState(pos), world, pos);
 
-        BlockModelRenderer.Translation translation = BlockModelRenderer.Translation.getTranslations(direction);
+        ModelBlockRenderer.AmbientVertexRemap translation = ModelBlockRenderer.AmbientVertexRemap.fromFacing(direction);
 
         float x = (ao4 + ao1 + p + w) * 0.25F;
         float y = (ao3 + ao1 + n + w) * 0.25F;
         float z = (ao3 + ao2 + r + w) * 0.25F;
         float aa = (ao4 + ao2 + t + w) * 0.25F;
-        if (flags.get(1) && neighborData.nonCubicWeight) {
-            float ab = box[neighborData.field_4192[0].shape] * box[neighborData.field_4192[1].shape];
-            float ac = box[neighborData.field_4192[2].shape] * box[neighborData.field_4192[3].shape];
-            float ad = box[neighborData.field_4192[4].shape] * box[neighborData.field_4192[5].shape];
-            float ae = box[neighborData.field_4192[6].shape] * box[neighborData.field_4192[7].shape];
-            float af = box[neighborData.field_4185[0].shape] * box[neighborData.field_4185[1].shape];
-            float ag = box[neighborData.field_4185[2].shape] * box[neighborData.field_4185[3].shape];
-            float ah = box[neighborData.field_4185[4].shape] * box[neighborData.field_4185[5].shape];
-            float ai = box[neighborData.field_4185[6].shape] * box[neighborData.field_4185[7].shape];
-            float aj = box[neighborData.field_4180[0].shape] * box[neighborData.field_4180[1].shape];
-            float ak = box[neighborData.field_4180[2].shape] * box[neighborData.field_4180[3].shape];
-            float al = box[neighborData.field_4180[4].shape] * box[neighborData.field_4180[5].shape];
-            float am = box[neighborData.field_4180[6].shape] * box[neighborData.field_4180[7].shape];
-            float an = box[neighborData.field_4188[0].shape] * box[neighborData.field_4188[1].shape];
-            float ao = box[neighborData.field_4188[2].shape] * box[neighborData.field_4188[3].shape];
-            float ap = box[neighborData.field_4188[4].shape] * box[neighborData.field_4188[5].shape];
-            float aq = box[neighborData.field_4188[6].shape] * box[neighborData.field_4188[7].shape];
-            this.brightness[translation.firstCorner] = x * ab + y * ac + z * ad + aa * ae;
-            this.brightness[translation.secondCorner] = x * af + y * ag + z * ah + aa * ai;
-            this.brightness[translation.thirdCorner] = x * aj + y * ak + z * al + aa * am;
-            this.brightness[translation.fourthCorner] = x * an + y * ao + z * ap + aa * aq;
+        if (flags.get(1) && neighborData.doNonCubicWeight) {
+            float ab = box[neighborData.vert0Weights[0].shape] * box[neighborData.vert0Weights[1].shape];
+            float ac = box[neighborData.vert0Weights[2].shape] * box[neighborData.vert0Weights[3].shape];
+            float ad = box[neighborData.vert0Weights[4].shape] * box[neighborData.vert0Weights[5].shape];
+            float ae = box[neighborData.vert0Weights[6].shape] * box[neighborData.vert0Weights[7].shape];
+            float af = box[neighborData.vert1Weights[0].shape] * box[neighborData.vert1Weights[1].shape];
+            float ag = box[neighborData.vert1Weights[2].shape] * box[neighborData.vert1Weights[3].shape];
+            float ah = box[neighborData.vert1Weights[4].shape] * box[neighborData.vert1Weights[5].shape];
+            float ai = box[neighborData.vert1Weights[6].shape] * box[neighborData.vert1Weights[7].shape];
+            float aj = box[neighborData.vert2Weights[0].shape] * box[neighborData.vert2Weights[1].shape];
+            float ak = box[neighborData.vert2Weights[2].shape] * box[neighborData.vert2Weights[3].shape];
+            float al = box[neighborData.vert2Weights[4].shape] * box[neighborData.vert2Weights[5].shape];
+            float am = box[neighborData.vert2Weights[6].shape] * box[neighborData.vert2Weights[7].shape];
+            float an = box[neighborData.vert3Weights[0].shape] * box[neighborData.vert3Weights[1].shape];
+            float ao = box[neighborData.vert3Weights[2].shape] * box[neighborData.vert3Weights[3].shape];
+            float ap = box[neighborData.vert3Weights[4].shape] * box[neighborData.vert3Weights[5].shape];
+            float aq = box[neighborData.vert3Weights[6].shape] * box[neighborData.vert3Weights[7].shape];
+            this.brightness[translation.vert0] = x * ab + y * ac + z * ad + aa * ae;
+            this.brightness[translation.vert1] = x * af + y * ag + z * ah + aa * ai;
+            this.brightness[translation.vert2] = x * aj + y * ak + z * al + aa * am;
+            this.brightness[translation.vert3] = x * an + y * ao + z * ap + aa * aq;
             int ar = this.meanBrightness(light4, light1, q, v);
             int as = this.meanBrightness(light3, light1, o, v);
             int at = this.meanBrightness(light3, light2, s, v);
             int au = this.meanBrightness(light4, light2, u, v);
-            this.light[translation.firstCorner] = this.getBrightness(ar, as, at, au, ab, ac, ad, ae);
-            this.light[translation.firstCorner] = this.getBrightness(ar, as, at, au, ab, ac, ad, ae);
-            this.light[translation.secondCorner] = this.getBrightness(ar, as, at, au, af, ag, ah, ai);
-            this.light[translation.thirdCorner] = this.getBrightness(ar, as, at, au, aj, ak, al, am);
-            this.light[translation.fourthCorner] = this.getBrightness(ar, as, at, au, an, ao, ap, aq);
+            this.lightmap[translation.vert0] = this.blend(ar, as, at, au, ab, ac, ad, ae);
+            this.lightmap[translation.vert0] = this.blend(ar, as, at, au, ab, ac, ad, ae);
+            this.lightmap[translation.vert1] = this.blend(ar, as, at, au, af, ag, ah, ai);
+            this.lightmap[translation.vert2] = this.blend(ar, as, at, au, aj, ak, al, am);
+            this.lightmap[translation.vert3] = this.blend(ar, as, at, au, an, ao, ap, aq);
         } else {
-            this.light[translation.firstCorner] = this.meanBrightness(light4, light1, q, v);
-            this.light[translation.secondCorner] = this.meanBrightness(light3, light1, o, v);
-            this.light[translation.thirdCorner] = this.meanBrightness(light3, light2, s, v);
-            this.light[translation.fourthCorner] = this.meanBrightness(light4, light2, u, v);
-            this.brightness[translation.firstCorner] = x;
-            this.brightness[translation.secondCorner] = y;
-            this.brightness[translation.thirdCorner] = z;
-            this.brightness[translation.fourthCorner] = aa;
+            this.lightmap[translation.vert0] = this.meanBrightness(light4, light1, q, v);
+            this.lightmap[translation.vert1] = this.meanBrightness(light3, light1, o, v);
+            this.lightmap[translation.vert2] = this.meanBrightness(light3, light2, s, v);
+            this.lightmap[translation.vert3] = this.meanBrightness(light4, light2, u, v);
+            this.brightness[translation.vert0] = x;
+            this.brightness[translation.vert1] = y;
+            this.brightness[translation.vert2] = z;
+            this.brightness[translation.vert3] = aa;
         }
 
         //Reinserting veil's "Disable Ambient Occlusion"

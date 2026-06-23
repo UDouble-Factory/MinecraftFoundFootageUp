@@ -2,6 +2,7 @@ package com.sp.render.bird;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import com.sp.SPBRevamped;
 import com.sp.compat.modmenu.ConfigStuff;
 import com.sp.mixininterfaces.RenderIndirectExtension;
@@ -10,21 +11,16 @@ import foundry.veil.api.client.render.VeilRenderer;
 import foundry.veil.api.client.render.framebuffer.AdvancedFbo;
 import foundry.veil.api.client.render.framebuffer.VeilFramebuffers;
 import foundry.veil.api.client.render.shader.program.ShaderProgram;
-import net.minecraft.client.gl.VertexBuffer;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormatElement;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
 import org.joml.Vector4fc;
 import org.lwjgl.opengl.GL43;
 
 import java.nio.ByteBuffer;
 
-import static net.minecraft.client.render.VertexFormats.NORMAL_ELEMENT;
-import static net.minecraft.client.render.VertexFormats.POSITION_ELEMENT;
-import static net.minecraft.util.math.MathHelper.floor;
+import static com.mojang.blaze3d.vertex.DefaultVertexFormat.ELEMENT_NORMAL;
+import static com.mojang.blaze3d.vertex.DefaultVertexFormat.ELEMENT_POSITION;
+import static net.minecraft.util.Mth.floor;
 import static org.lwjgl.opengl.GL15C.glBindBuffer;
 import static org.lwjgl.opengl.GL15C.glGenBuffers;
 import static org.lwjgl.opengl.GL42C.*;
@@ -32,8 +28,8 @@ import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER;
 import static org.lwjgl.opengl.GL43C.glDispatchCompute;
 
 public class BirdRenderer {
-    private static final Identifier shaderPath = new Identifier(SPBRevamped.MOD_ID, "bird/bird");
-    public static final Identifier computeShaderPath = new Identifier(SPBRevamped.MOD_ID, "bird/compute/positions");
+    private static final ResourceLocation shaderPath = new ResourceLocation(SPBRevamped.MOD_ID, "bird/bird");
+    public static final ResourceLocation computeShaderPath = new ResourceLocation(SPBRevamped.MOD_ID, "bird/compute/positions");
 
     private final int positionsVbo;
     private final int indirectVbo;
@@ -45,8 +41,8 @@ public class BirdRenderer {
 
     public static final VertexFormat POSITION_NORMAL = new VertexFormat(
             ImmutableMap.<String, VertexFormatElement>builder()
-                    .put("Position", POSITION_ELEMENT)
-                    .put("Color", NORMAL_ELEMENT)
+                    .put("Position", ELEMENT_POSITION)
+                    .put("Color", ELEMENT_NORMAL)
                     .build()
     );
     private int lastFlockCount;
@@ -56,15 +52,15 @@ public class BirdRenderer {
         this.lastFlockCount = ConfigStuff.birdQuality.getFlockCount();
 
         this.vertexBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBuffer();
+        Tesselator tessellator = Tesselator.getInstance();
+        BufferBuilder bufferBuilder = tessellator.getBuilder();
 
-        bufferBuilder.begin(VertexFormat.DrawMode.TRIANGLES, POSITION_NORMAL);
+        bufferBuilder.begin(VertexFormat.Mode.TRIANGLES, POSITION_NORMAL);
 
 
         this.createGrassModel(bufferBuilder);
 
-        BufferBuilder.BuiltBuffer builtBuffer = bufferBuilder.end();
+        BufferBuilder.RenderedBuffer builtBuffer = bufferBuilder.end();
 
         this.vertexBuffer.bind();
         this.vertexBuffer.upload(builtBuffer);
@@ -90,10 +86,10 @@ public class BirdRenderer {
             }
 
             this.vertexBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
-            Tessellator tessellator = Tessellator.getInstance();
-            BufferBuilder bufferBuilder = tessellator.getBuffer();
+            Tesselator tessellator = Tesselator.getInstance();
+            BufferBuilder bufferBuilder = tessellator.getBuilder();
 
-            bufferBuilder.begin(VertexFormat.DrawMode.TRIANGLES, POSITION_NORMAL);
+            bufferBuilder.begin(VertexFormat.Mode.TRIANGLES, POSITION_NORMAL);
 
             this.createGrassModel(bufferBuilder);
 
@@ -157,7 +153,7 @@ public class BirdRenderer {
             );
 
             if (initialData != null) {
-                Random random = Random.create();
+                RandomSource random = RandomSource.create();
 
                 for (int i = 0; i < currentBirdCount; i++) {
 //                    initialData.putFloat((float) (FlockManager.getFlockCenter((i) % ConfigStuff.birdQuality.getFlockCount()).x + (random.nextFloat() * 10)));
@@ -266,24 +262,24 @@ public class BirdRenderer {
 
     private void createGrassModel(BufferBuilder bufferBuilder) {
         // Front face
-        bufferBuilder.vertex(0.000000f, 0.000000f, -1.000000f).normal(0.8402f, 0.2425f, -0.4851f).next(); // v1
-        bufferBuilder.vertex(0.000000f, 2.000000f, 0.000000f).normal(0.8402f, 0.2425f, -0.4851f).next(); // v4
-        bufferBuilder.vertex(0.866025f, 0.000000f, 0.500000f).normal(0.8402f, 0.2425f, -0.4851f).next(); // v2
+        bufferBuilder.vertex(0.000000f, 0.000000f, -1.000000f).normal(0.8402f, 0.2425f, -0.4851f).endVertex(); // v1
+        bufferBuilder.vertex(0.000000f, 2.000000f, 0.000000f).normal(0.8402f, 0.2425f, -0.4851f).endVertex(); // v4
+        bufferBuilder.vertex(0.866025f, 0.000000f, 0.500000f).normal(0.8402f, 0.2425f, -0.4851f).endVertex(); // v2
 
         // Bottom face
-        bufferBuilder.vertex(0.000000f, 0.000000f, -1.000000f).normal(0.0000f, -1.0000f, 0.0000f).next(); // v1
-        bufferBuilder.vertex(0.866025f, 0.000000f, 0.500000f).normal(0.0000f, -1.0000f, 0.0000f).next(); // v2
-        bufferBuilder.vertex(-0.866025f, 0.000000f, 0.500000f).normal(0.0000f, -1.0000f, 0.0000f).next(); // v3
+        bufferBuilder.vertex(0.000000f, 0.000000f, -1.000000f).normal(0.0000f, -1.0000f, 0.0000f).endVertex(); // v1
+        bufferBuilder.vertex(0.866025f, 0.000000f, 0.500000f).normal(0.0000f, -1.0000f, 0.0000f).endVertex(); // v2
+        bufferBuilder.vertex(-0.866025f, 0.000000f, 0.500000f).normal(0.0000f, -1.0000f, 0.0000f).endVertex(); // v3
 
         // Right face
-        bufferBuilder.vertex(0.866025f, 0.000000f, 0.500000f).normal(0.0000f, 0.2425f, 0.9701f).next(); // v2
-        bufferBuilder.vertex(0.000000f, 2.000000f, 0.000000f).normal(0.0000f, 0.2425f, 0.9701f).next(); // v4
-        bufferBuilder.vertex(-0.866025f, 0.000000f, 0.500000f).normal(0.0000f, 0.2425f, 0.9701f).next(); // v3
+        bufferBuilder.vertex(0.866025f, 0.000000f, 0.500000f).normal(0.0000f, 0.2425f, 0.9701f).endVertex(); // v2
+        bufferBuilder.vertex(0.000000f, 2.000000f, 0.000000f).normal(0.0000f, 0.2425f, 0.9701f).endVertex(); // v4
+        bufferBuilder.vertex(-0.866025f, 0.000000f, 0.500000f).normal(0.0000f, 0.2425f, 0.9701f).endVertex(); // v3
 
         // Left face
-        bufferBuilder.vertex(-0.866025f, 0.000000f, 0.500000f).normal(-0.8402f, 0.2425f, -0.4851f).next(); // v3
-        bufferBuilder.vertex(0.000000f, 2.000000f, 0.000000f).normal(-0.8402f, 0.2425f, -0.4851f).next(); // v4
-        bufferBuilder.vertex(0.000000f, 0.000000f, -1.000000f).normal(-0.8402f, 0.2425f, -0.4851f).next(); // v1
+        bufferBuilder.vertex(-0.866025f, 0.000000f, 0.500000f).normal(-0.8402f, 0.2425f, -0.4851f).endVertex(); // v3
+        bufferBuilder.vertex(0.000000f, 2.000000f, 0.000000f).normal(-0.8402f, 0.2425f, -0.4851f).endVertex(); // v4
+        bufferBuilder.vertex(0.000000f, 0.000000f, -1.000000f).normal(-0.8402f, 0.2425f, -0.4851f).endVertex(); // v1
     }
 
     public void close() {

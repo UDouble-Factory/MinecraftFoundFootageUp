@@ -4,10 +4,10 @@ import com.sp.SPBRevamped;
 import com.sp.item.custom.Backshroom;
 import com.sp.item.custom.CannedFood;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 
 public class ModItems {
 
@@ -18,7 +18,7 @@ public class ModItems {
             new CannedFood(new FabricItemSettings().food(ModFoodComponents.CANNED_FOOD)));
 
     private static Item registerItem(String name, Item item){
-        return Registry.register(Registries.ITEM, new Identifier(SPBRevamped.MOD_ID, name), item);
+        return Registry.register(BuiltInRegistries.ITEM, new ResourceLocation(SPBRevamped.MOD_ID, name), item);
     }
 
     public static void registerModItems() {

@@ -2,9 +2,9 @@ package com.sp.entity.ik.model.GeckoLib;
 
 import com.sp.entity.ik.model.BoneAccessor;
 import com.sp.entity.ik.util.MathUtil;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -56,7 +56,7 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
     }
 
     // Position utils
-    public void addPos(Vec3d vec) {
+    public void addPos(Vec3 vec) {
         addPos((float) vec.x, (float) vec.y, (float) vec.z);
     }
 
@@ -84,16 +84,16 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
         setPosZ(z);
     }
 
-    public Vec3d getPos() {
-        return new Vec3d(getPosX(), getPosY(), getPosZ());
+    public Vec3 getPos() {
+        return new Vec3(getPosX(), getPosY(), getPosZ());
     }
 
-    public void setPos(Vec3d vec) {
+    public void setPos(Vec3 vec) {
         setPos((float) vec.x, (float) vec.y, (float) vec.z);
     }
 
     // Rotation utils
-    public void addRot(Vec3d vec) {
+    public void addRot(Vec3 vec) {
         addRot((float) vec.x, (float) vec.y, (float) vec.z);
     }
 
@@ -129,12 +129,12 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
         setRot((float) vec.x(), (float) vec.y(), (float) vec.z());
     }
 
-    public void setRot(Vec3d vec) {
+    public void setRot(Vec3 vec) {
         setRot((float) vec.x, (float) vec.y, (float) vec.z);
     }
 
     // Scale utils
-    public void multiplyScale(Vec3d vec) {
+    public void multiplyScale(Vec3 vec) {
         multiplyScale((float) vec.x, (float) vec.y, (float) vec.z);
     }
 
@@ -154,7 +154,7 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
         return new Vector3d(getScaleX(), getScaleY(), getScaleZ());
     }
 
-    public void setScale(Vec3d vec) {
+    public void setScale(Vec3 vec) {
         setScale((float) vec.x, (float) vec.y, (float) vec.z);
     }
 
@@ -199,31 +199,31 @@ public class MowzieGeoBone extends GeoBone implements BoneAccessor /* only the i
     }
 
     @Override
-    public Vec3d getPosition() {
+    public Vec3 getPosition() {
         return MathUtil.toVec3(this.getWorldPosition());
     }
 
     @Override
-    public void moveTo(Vec3d to, @Nullable Vec3d facing, Entity entity) {
+    public void moveTo(Vec3 to, @Nullable Vec3 facing, Entity entity) {
         this.setForceMatrixTransform(true);
 
         Matrix4f xformOverride = new Matrix4f();
 
-        Vec3d newModelPosWorldSpace;
+        Vec3 newModelPosWorldSpace;
         if (entity instanceof LivingEntity) {
-            newModelPosWorldSpace = MathUtil.rotatePointOnAPlaneAround(to, entity.getPos(), -180 + entity.getBodyYaw(), new Vec3d(0, 1, 0));
+            newModelPosWorldSpace = MathUtil.rotatePointOnAPlaneAround(to, entity.position(), -180 + entity.getVisualRotationYInDegrees(), new Vec3(0, 1, 0));
         } else {
-            newModelPosWorldSpace = MathUtil.rotatePointOnAPlaneAround(to, entity.getPos(), -180, new Vec3d(0, 1, 0));
+            newModelPosWorldSpace = MathUtil.rotatePointOnAPlaneAround(to, entity.position(), -180, new Vec3(0, 1, 0));
         }
         // Translation
         xformOverride = xformOverride.translate(newModelPosWorldSpace.toVector3f());
 
         if (facing != null) {
-            Vec3d newTargetVecWorldSpace;
+            Vec3 newTargetVecWorldSpace;
             if (entity instanceof LivingEntity) {
-                newTargetVecWorldSpace = MathUtil.rotatePointOnAPlaneAround(facing, entity.getPos(), -180 + entity.getBodyYaw(), new Vec3d(0, 1, 0));
+                newTargetVecWorldSpace = MathUtil.rotatePointOnAPlaneAround(facing, entity.position(), -180 + entity.getVisualRotationYInDegrees(), new Vec3(0, 1, 0));
             } else {
-                newTargetVecWorldSpace = MathUtil.rotatePointOnAPlaneAround(facing, entity.getPos(), -180, new Vec3d(0, 1, 0));
+                newTargetVecWorldSpace = MathUtil.rotatePointOnAPlaneAround(facing, entity.position(), -180, new Vec3(0, 1, 0));
             }
 
             Quaternionf q;

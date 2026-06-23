@@ -1,11 +1,11 @@
 package com.sp.mixin.grass;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.VertexBuffer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.sp.mixininterfaces.RenderIndirectExtension;
 import foundry.veil.api.client.render.VeilRenderSystem;
 import foundry.veil.api.client.render.shader.program.ShaderProgram;
-import net.minecraft.client.gl.VertexBuffer;
-import net.minecraft.client.render.VertexFormat;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -23,9 +23,9 @@ import static org.lwjgl.opengl.GL40C.glDrawElementsIndirect;
 public class VertexBufferMixin implements RenderIndirectExtension {
 
     @Shadow private int indexBufferId;
-    @Shadow private VertexFormat.DrawMode drawMode;
+    @Shadow private VertexFormat.Mode mode;
     @Shadow private VertexFormat.IndexType indexType;
-    @Shadow @Nullable private RenderSystem.@Nullable ShapeIndexBuffer sharedSequentialIndexBuffer;
+    @Shadow @Nullable private RenderSystem.@Nullable AutoStorageIndexBuffer sequentialIndices;
     @Shadow private int indexCount;
 
 
@@ -49,12 +49,12 @@ public class VertexBufferMixin implements RenderIndirectExtension {
 
     @Unique
     public void drawIndirect() {
-        if (this.sharedSequentialIndexBuffer != null) {
-            this.sharedSequentialIndexBuffer.bindAndGrow(this.indexCount);
-            glDrawElementsIndirect(this.getDrawMode(this.drawMode.glMode), this.sharedSequentialIndexBuffer.getIndexType().glType, 0);
+        if (this.sequentialIndices != null) {
+            this.sequentialIndices.bind(this.indexCount);
+            glDrawElementsIndirect(this.getDrawMode(this.mode.asGLMode), this.sequentialIndices.type().asGLType, 0);
         } else {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this.indexBufferId);
-            glDrawElementsIndirect(this.getDrawMode(this.drawMode.glMode), this.indexType.glType, 0);
+            glDrawElementsIndirect(this.getDrawMode(this.mode.asGLMode), this.indexType.asGLType, 0);
         }
 
     }
