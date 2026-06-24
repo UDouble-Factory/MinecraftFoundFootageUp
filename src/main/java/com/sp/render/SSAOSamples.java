@@ -22,6 +22,17 @@ public class SSAOSamples {
         return Samples;
     }
 
+    public static float[] getSSAOSamplesFlat() {
+        Vector3f[] samples = getSSAOSamples();
+        float[] flat = new float[samples.length * 3];
+        for (int i = 0; i < samples.length; i++) {
+            flat[i * 3] = samples[i].x;
+            flat[i * 3 + 1] = samples[i].y;
+            flat[i * 3 + 2] = samples[i].z;
+        }
+        return flat;
+    }
+
     public static Vector3f[] generateSSAOSamples(){
         RandomSource random = RandomSource.create();
         Vector3f[] list = new Vector3f[MaxSamples];

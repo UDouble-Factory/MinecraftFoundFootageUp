@@ -11,6 +11,7 @@ import com.sp.entity.ik.parts.sever_limbs.ServerLimb;
 import com.sp.entity.ik.util.MathUtil;
 import com.sp.init.ModEntities;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -91,8 +92,7 @@ public class WalkerEntity extends Entity implements GeoEntity, GeoAnimatable, IK
     }
 
     @Override
-    protected void defineSynchedData() {
-
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
     }
 
     public @Nullable Entity getTarget() {

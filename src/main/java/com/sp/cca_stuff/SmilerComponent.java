@@ -1,6 +1,7 @@
 package com.sp.cca_stuff;
 
 import com.sp.entity.custom.SmilerEntity;
+import net.minecraft.core.HolderLookup;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import net.minecraft.nbt.CompoundTag;
@@ -45,13 +46,13 @@ public class SmilerComponent implements AutoSyncedComponent, ClientTickingCompon
     }
 
     @Override
-    public void readFromNbt(CompoundTag tag) {
+    public void readFromNbt(CompoundTag tag, HolderLookup.Provider provider) {
         this.randomTexture = tag.getInt("randomTexture");
         this.shouldDisappear = tag.getBoolean("shouldDisappear");
     }
 
     @Override
-    public void writeToNbt(CompoundTag tag) {
+    public void writeToNbt(CompoundTag tag, HolderLookup.Provider provider) {
         tag.putInt("randomTexture", this.randomTexture);
         tag.putBoolean("shouldDisappear", this.shouldDisappear);
     }

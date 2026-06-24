@@ -17,8 +17,8 @@ public class CannedFood extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag context) {
-        super.appendHoverText(stack, world, tooltip, context);
+    public void appendHoverText(ItemStack stack, TooltipContext tooltipContext, List<Component> tooltip, TooltipFlag context) {
+        super.appendHoverText(stack, tooltipContext, tooltip, context);
         tooltip.add(Component.translatable("item.spb-revamped.canned_food.tooltip").withStyle(ChatFormatting.DARK_PURPLE).withStyle(ChatFormatting.ITALIC));
     }
 }

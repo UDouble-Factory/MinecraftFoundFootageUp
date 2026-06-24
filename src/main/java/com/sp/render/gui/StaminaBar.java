@@ -6,6 +6,7 @@ import com.sp.cca_stuff.InitializeComponents;
 import com.sp.cca_stuff.PlayerComponent;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.Util;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
@@ -20,7 +21,7 @@ public class StaminaBar implements HudRenderCallback {
 
 
     @Override
-    public void onHudRender(GuiGraphics drawContext, float tickDelta) {
+    public void onHudRender(GuiGraphics drawContext, DeltaTracker tickCounter) {
         Minecraft client = Minecraft.getInstance();
         Player player = client.player;
 

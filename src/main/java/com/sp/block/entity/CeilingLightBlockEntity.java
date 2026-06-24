@@ -52,7 +52,7 @@ public class CeilingLightBlockEntity extends BlockEntity {
         this.angle = 60.4f;
         this.light = new AreaLightData();
         this.light.getOrientation().rotateXYZ((float) Math.toRadians(-90d), 0, 0);
-        this.light.position.set(position.x, position.y, position.z);
+        this.light.getPosition().set(position.x, position.y, position.z);
 
         this.lightHandle = VeilRenderSystem.renderer().getLightRenderer().addLight(this.light
                 .setBrightness(this.brightness)

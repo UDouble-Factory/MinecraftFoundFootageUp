@@ -12,8 +12,8 @@ import com.sp.util.MathStuff;
 import foundry.veil.api.client.render.VeilRenderSystem;
 import net.minecraft.client.Camera;
 import net.minecraft.client.CameraType;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
@@ -21,6 +21,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
@@ -38,7 +40,7 @@ public abstract class GameRendererMixin {
     private static final ResourceLocation shadowEntity = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "shadowmap/rendertype_entity");
 
     @Unique
-    private static final ResourceLocation warpEntity = new ResourceLocation("spbrevamped", "warp_player");
+    private static final ResourceLocation warpEntity = ResourceLocation.fromNamespaceAndPath("spbrevamped", "warp_player");
 
     @Unique
     private float smoothPitch = 0.0f;
@@ -48,67 +50,67 @@ public abstract class GameRendererMixin {
 
     @Shadow @Final Minecraft minecraft;
 
-
     @Shadow public abstract void setRenderBlockOutline(boolean blockOutlineEnabled);
     @Shadow public abstract void tick();
-    @Shadow protected abstract void renderItemInHand(PoseStack matrices, Camera camera, float tickDelta);
 
     @Shadow private static @Nullable ShaderInstance rendertypeEntityTranslucentShader;
 
-    @Shadow public abstract void render(float tickDelta, long startTime, boolean tick);
-
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;bobHurt(Lcom/mojang/blaze3d/vertex/PoseStack;F)V"))
-    public void renderWorld(float tickDelta, long limitTime, PoseStack matrices, CallbackInfo ci) {
+    public void renderWorld(DeltaTracker deltaTracker, CallbackInfo ci) {
         if (SPBRevampedClient.shouldRenderCameraEffect()) {
             Player player = this.minecraft.player;
             this.setRenderBlockOutline(true);
+        }
+    }
+
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;rotation()Lorg/joml/Quaternionf;"))
+    private void applyCameraEffects(DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (SPBRevampedClient.shouldRenderCameraEffect()) {
+            Player player = this.minecraft.player;
+            float tickDelta = deltaTracker.getGameTimeDeltaPartialTick(true);
 
             if (player != null) {
                 CutsceneManager cutsceneManager = SPBRevampedClient.getCutsceneManager();
 
-                if (ConfigStuff.enableRealCamera && !cutsceneManager.isPlaying && minecraft.getCameraEntity() == player) {
-                    matrices.mulPose(Axis.ZP.rotationDegrees(CameraRoll.doCameraRoll(player, tickDelta)));
-                } else if (cutsceneManager.isPlaying) {
-                    matrices.mulPose(Axis.YP.rotationDegrees(cutsceneManager.cameraRotZ));
+                if (ConfigStuff.enableSmoothCamera && !cutsceneManager.isPlaying && minecraft.options.getCameraType() == CameraType.FIRST_PERSON) {
+                    float xRot = player.getViewXRot(tickDelta);
+                    float yRot = player.getViewYRot(tickDelta) + 180.0f;
+                    this.smoothPitch = MathStuff.Lerp(this.smoothPitch, xRot, ConfigStuff.cameraSmoothing, minecraft.getTimer().getRealtimeDeltaTicks());
+                    this.smoothYaw = MathStuff.Lerp(this.smoothYaw, yRot, ConfigStuff.cameraSmoothing, minecraft.getTimer().getRealtimeDeltaTicks());
                 }
             }
         }
     }
 
-    @ModifyArg(method = "renderLevel", at = @At(value = "INVOKE", target = "Lcom/mojang/math/Axis;rotationDegrees(F)Lorg/joml/Quaternionf;", ordinal = 2))
-    private float smoothPitch(float deg) {
+    @ModifyVariable(method = "renderLevel", at = @At(value = "STORE"), ordinal = 1)
+    private Matrix4f modifyViewMatrix(Matrix4f matrix4f2) {
         if (!SPBRevampedClient.shouldRenderCameraEffect()) {
-            return deg;
+            return matrix4f2;
         }
 
         Player player = this.minecraft.player;
+        if (player != null) {
+            CutsceneManager cutsceneManager = SPBRevampedClient.getCutsceneManager();
+            float tickDelta = minecraft.getTimer().getGameTimeDeltaPartialTick(true);
 
-        if(player != null && ConfigStuff.enableSmoothCamera && minecraft.options.getCameraType() == CameraType.FIRST_PERSON){
-            this.smoothYaw = MathStuff.Lerp(this.smoothYaw, deg, ConfigStuff.cameraSmoothing, minecraft.getDeltaFrameTime());
-            return this.smoothYaw;
-        } else {
-            this.smoothYaw = deg;
+            if (ConfigStuff.enableRealCamera && !cutsceneManager.isPlaying && minecraft.getCameraEntity() == player) {
+                matrix4f2.rotate(Axis.ZP.rotationDegrees(CameraRoll.doCameraRoll(player, tickDelta)));
+            } else if (cutsceneManager.isPlaying) {
+                matrix4f2.rotate(Axis.YP.rotationDegrees(cutsceneManager.cameraRotZ));
+            }
+
+            if (ConfigStuff.enableSmoothCamera && !cutsceneManager.isPlaying && minecraft.options.getCameraType() == CameraType.FIRST_PERSON) {
+                Quaternionf smoothRotation = new Quaternionf();
+                smoothRotation.rotationYXZ(
+                        (float) Math.toRadians(this.smoothYaw),
+                        (float) Math.toRadians(this.smoothPitch),
+                        0.0f
+                );
+                matrix4f2.set(new Matrix4f().rotation(smoothRotation.conjugate()));
+            }
         }
 
-        return deg;
-    }
-
-    @ModifyArg(method = "renderLevel", at = @At(value = "INVOKE", target = "Lcom/mojang/math/Axis;rotationDegrees(F)Lorg/joml/Quaternionf;", ordinal = 3))
-    private float smoothYaw(float deg) {
-        if (!SPBRevampedClient.shouldRenderCameraEffect()) {
-            return deg;
-        }
-
-        Player player = this.minecraft.player;
-
-        if(player != null && ConfigStuff.enableSmoothCamera && minecraft.options.getCameraType() == CameraType.FIRST_PERSON){
-            this.smoothPitch = MathStuff.Lerp(this.smoothPitch, deg, ConfigStuff.cameraSmoothing, minecraft.getDeltaFrameTime());
-            return this.smoothPitch;
-        } else {
-            this.smoothPitch = deg;
-        }
-
-        return deg;
+        return matrix4f2;
     }
 
     /// Why are we doing this. Why are we overwriting this method? Space please tell me? best of wishes -Chaos
@@ -185,20 +187,22 @@ public abstract class GameRendererMixin {
         cir.setReturnValue(shader.toShaderInstance());
     }
 
-    @Redirect(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/Camera;F)V"))
-    private void redirect(GameRenderer instance, PoseStack matrices, Camera camera, float tickDelta) {
+    @Shadow private void renderItemInHand(Camera camera, float f, Matrix4f matrix4f) {}
+
+    @Redirect(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand(Lnet/minecraft/client/Camera;FLorg/joml/Matrix4f;)V"))
+    private void redirectRenderItemInHand(GameRenderer instance, Camera camera, float tickDelta, Matrix4f matrix4f) {
         if(!SPBRevampedClient.getCutsceneManager().isPlaying){
-            this.renderItemInHand(matrices, camera, tickDelta);
+            this.renderItemInHand(camera, tickDelta, matrix4f);
         }
     }
 
-    @Redirect(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;getPickRange()F"))
-    private float increaseReach(MultiPlayerGameMode instance){
-        return 6;
+    @Redirect(method = "pick(F)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;blockInteractionRange()D"))
+    private double increaseBlockReach(net.minecraft.client.player.LocalPlayer instance){
+        return 6.0;
     }
 
-    @ModifyConstant(method = "pick", constant = @Constant(doubleValue = 9.0))
-    private double increaseReach(double constant){
-        return 36;
+    @Redirect(method = "pick(F)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;entityInteractionRange()D"))
+    private double increaseEntityReach(net.minecraft.client.player.LocalPlayer instance){
+        return 6.0;
     }
 }

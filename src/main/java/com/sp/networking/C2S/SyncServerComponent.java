@@ -2,19 +2,17 @@ package com.sp.networking.C2S;
 
 import com.sp.cca_stuff.InitializeComponents;
 import com.sp.cca_stuff.PlayerComponent;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.MinecraftServer;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 public class SyncServerComponent {
 
-    public static void receive(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender){
-        boolean readBoolean = buf.readBoolean();
-        String component = buf.readUtf();
+    public static void receive(SyncServerComponentPayload payload, ServerPlayNetworking.Context context) {
+        boolean readBoolean = payload.value();
+        String component = payload.component();
+        ServerPlayer player = context.player();
 
-        server.execute(()->{
+        context.server().execute(() -> {
             PlayerComponent playerComponent = InitializeComponents.PLAYER.get(player);
 
             switch (component) {
@@ -28,5 +26,4 @@ public class SyncServerComponent {
             playerComponent.sync();
         });
     }
-
 }

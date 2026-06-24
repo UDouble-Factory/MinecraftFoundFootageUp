@@ -1,9 +1,9 @@
 package com.sp.entity.ik.parts;
 
-import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
 
 public class WorldCollidingSegment extends Segment {
     private Level level;
@@ -47,7 +47,7 @@ public class WorldCollidingSegment extends Segment {
                     this.getPosition(),
                     ClipContext.Block.COLLIDER,
                     ClipContext.Fluid.NONE,
-                    new Arrow(this.level, this.getPosition().x, this.getPosition().y, this.getPosition().z)
+                    CollisionContext.empty()
             )).getLocation();
 
             super.move(collisionPoint);

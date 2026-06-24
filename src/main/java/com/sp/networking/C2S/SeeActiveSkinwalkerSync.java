@@ -2,19 +2,16 @@ package com.sp.networking.C2S;
 
 import com.sp.cca_stuff.InitializeComponents;
 import com.sp.cca_stuff.PlayerComponent;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.MinecraftServer;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
 
 public class SeeActiveSkinwalkerSync {
 
-    public static void receive(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender){
+    public static void receive(SeeActiveSkinwalkerSyncPayload payload, ServerPlayNetworking.Context context) {
+        boolean canSeeSkinwalker = payload.canSeeSkinwalker();
+        ServerPlayer player = context.player();
 
-        boolean canSeeSkinwalker = buf.readBoolean();
-
-        server.execute(()->{
+        context.server().execute(() -> {
             PlayerComponent playerComponent = InitializeComponents.PLAYER.get(player);
             playerComponent.setCanSeeActiveSkinWalkerTarget(canSeeSkinwalker);
         });

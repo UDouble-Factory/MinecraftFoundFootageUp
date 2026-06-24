@@ -24,8 +24,8 @@ public interface IKDebugRenderer<E extends IKAnimatable<E>, C extends IKModelCom
 
     static void drawLine(PoseStack matrices, MultiBufferSource vertexConsumers, Vec3 camera, Vec3 startPos, Vec3 targetPos, int red, int green, int blue, int alpha) {
         VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderType.debugLineStrip(1.0));
-        vertexConsumer.vertex(matrices.last().pose(), (float) (startPos.x - camera.x), (float) (startPos.y - camera.y), (float) (startPos.z - camera.z)).color(getArgb(alpha, red, green, blue)).endVertex();
-        vertexConsumer.vertex(matrices.last().pose(), (float) (targetPos.x - camera.x), (float) (targetPos.y - camera.y), (float) (targetPos.z - camera.z)).color(getArgb(alpha, red, green, blue)).endVertex();
+        vertexConsumer.addVertex(matrices.last().pose(), (float) (startPos.x - camera.x), (float) (startPos.y - camera.y), (float) (startPos.z - camera.z)).setColor(getArgb(alpha, red, green, blue));
+        vertexConsumer.addVertex(matrices.last().pose(), (float) (targetPos.x - camera.x), (float) (targetPos.y - camera.y), (float) (targetPos.z - camera.z)).setColor(getArgb(alpha, red, green, blue));
     }
 
     static int getArgb(int alpha, int red, int green, int blue) {

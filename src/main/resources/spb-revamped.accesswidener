@@ -21,7 +21,5 @@ accessible field net/minecraft/client/renderer/block/ModelBlockRenderer$AmbientV
 accessible field net/minecraft/client/renderer/block/ModelBlockRenderer$AmbientVertexRemap vert3 I
 accessible field net/minecraft/client/renderer/block/ModelBlockRenderer$SizeInfo shape I
 accessible class net/minecraft/client/OptionInstance$ValueSet
-accessible class net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$RebuildTask
-accessible class net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$RebuildTask$CompileResults
 accessible method net/minecraft/client/renderer/texture/TextureAtlas getHeight ()I
 accessible method net/minecraft/client/renderer/texture/TextureAtlas getWidth ()I

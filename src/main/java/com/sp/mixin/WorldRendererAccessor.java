@@ -17,8 +17,8 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(LevelRenderer.class)
 public interface WorldRendererAccessor {
 
-    @Invoker("renderChunkLayer")
-    void invokeRenderLayer(RenderType renderLayer, PoseStack matrices, double cameraX, double cameraY, double cameraZ, Matrix4f positionMatrix);
+    @Invoker("renderSectionLayer")
+    void invokeRenderLayer(RenderType renderType, double d, double e, double f, Matrix4f matrix4f, Matrix4f matrix4f2);
 
     @Invoker("setupRender")
     void invokeSetupTerrain(Camera camera, Frustum frustum, boolean hasForcedFrustum, boolean spectator);

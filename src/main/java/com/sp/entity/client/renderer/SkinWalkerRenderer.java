@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -245,7 +246,7 @@ public class SkinWalkerRenderer extends DynamicGeoEntityRenderer<SkinWalkerEntit
 
                 for (GeoCube cube : bone.getCubes()) {
                     poseStack.pushPose();
-                    renderCube(poseStack, cube, vertexConsumer, 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                    renderCube(poseStack, cube, vertexConsumer, 15728640, OverlayTexture.NO_OVERLAY, FastColor.ARGB32.color(255, 255, 255, 255));
                     poseStack.popPose();
                 }
                 return true;

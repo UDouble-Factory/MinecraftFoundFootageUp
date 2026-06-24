@@ -5,6 +5,7 @@ import com.sp.SPBRevampedClient;
 import com.sp.render.camera.CutsceneManager;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -14,7 +15,7 @@ public class TitleText implements HudRenderCallback {
     }
 
     @Override
-    public void onHudRender(GuiGraphics drawContext, float tickDelta) {
+    public void onHudRender(GuiGraphics drawContext, DeltaTracker tickCounter) {
         CutsceneManager cutsceneManager = SPBRevampedClient.getCutsceneManager();
 
         if(cutsceneManager.backroomsBySP && !cutsceneManager.blackScreen.isBlackScreen){

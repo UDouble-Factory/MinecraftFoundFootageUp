@@ -126,7 +126,7 @@ public final class InfGrassChunkGenerator extends BackroomsChunkGenerator {
     /* this method builds the shape of the terrain. it places stone everywhere, which will later be overwritten with grass, terracotta, snow, sand, etc
          by the buildSurface method. it also is responsible for putting the water in oceans. it returns a CompletableFuture-- you'll likely want this to be delegated to worker threads. */
     @Override
-    public CompletableFuture<ChunkAccess> fillFromNoise(Executor executor, Blender blender, RandomState noiseConfig, StructureManager structureAccessor, ChunkAccess chunk) {
+    public CompletableFuture<ChunkAccess> fillFromNoise(Blender blender, RandomState noiseConfig, StructureManager structureAccessor, ChunkAccess chunk) {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         for(int k = 0; k < 16; ++k) {
             for(int l = 0; l < 16; ++l) {

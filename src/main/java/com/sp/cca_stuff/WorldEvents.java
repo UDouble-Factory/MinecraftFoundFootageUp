@@ -10,6 +10,7 @@ import com.sp.world.events.AbstractEvent;
 import com.sp.world.levels.BackroomsLevel;
 import com.sp.world.levels.BackroomsLevelWithLights;
 import com.sp.world.levels.custom.Level0BackroomsLevel;
+import net.minecraft.core.HolderLookup;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 import net.minecraft.nbt.CompoundTag;
@@ -71,7 +72,7 @@ public class WorldEvents implements AutoSyncedComponent, ServerTickingComponent 
     }
 
     @Override
-    public void readFromNbt(CompoundTag tag) {
+    public void readFromNbt(CompoundTag tag, HolderLookup.Provider provider) {
         for (BackroomsLevel level: BackroomsLevels.BACKROOMS_LEVELS) {
             if (this.world.dimension() == level.getWorldKey()) {
                 level.readFromNbt(tag);
@@ -83,7 +84,7 @@ public class WorldEvents implements AutoSyncedComponent, ServerTickingComponent 
     }
 
     @Override
-    public void writeToNbt(CompoundTag tag) {
+    public void writeToNbt(CompoundTag tag, HolderLookup.Provider provider) {
         for (BackroomsLevel level: BackroomsLevels.BACKROOMS_LEVELS) {
             if (this.world.dimension() == level.getWorldKey()) {
                 level.writeToNbt(tag);

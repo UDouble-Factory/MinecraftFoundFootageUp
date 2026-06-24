@@ -1,5 +1,6 @@
 package com.sp.mixin;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.StructureBlockEntity;
@@ -14,8 +15,8 @@ public class StructureBlockEntityMixin {
     @Shadow
     private Vec3i structureSize;
 
-    @Inject(method = "load", at = @At("RETURN"))
-    public void readNbt(CompoundTag nbt, CallbackInfo ci) {
+    @Inject(method = "loadAdditional", at = @At("RETURN"))
+    public void readNbt(CompoundTag nbt, HolderLookup.Provider provider, CallbackInfo ci) {
         int l = nbt.getInt("sizeX");
         int m = nbt.getInt("sizeY");
         int n = nbt.getInt("sizeZ");

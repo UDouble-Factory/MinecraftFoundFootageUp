@@ -50,10 +50,10 @@ public class ShadowMapRenderer {
             frustum.prepare(cameraPos.x, cameraPos.y, cameraPos.z);
             accessor.setFrustum(frustum);
             accessor.invokeSetupTerrain(camera, frustum, false, false);
-            accessor.invokeRenderLayer(RenderType.cutout(), shadowModelView, cameraPos.x, cameraPos.y, cameraPos.z, shadowProjMat);
-            accessor.invokeRenderLayer(RenderType.cutoutMipped(), shadowModelView, cameraPos.x, cameraPos.y, cameraPos.z, shadowProjMat);
-            accessor.invokeRenderLayer(RenderType.solid(), shadowModelView, cameraPos.x, cameraPos.y, cameraPos.z, shadowProjMat);
-//            accessor.invokeRenderLayer(RenderLayers.getPoolTileLayer(), shadowModelView, cameraPos.x, cameraPos.y, cameraPos.z, shadowProjMat);
+            accessor.invokeRenderLayer(RenderType.cutout(), cameraPos.x, cameraPos.y, cameraPos.z, shadowModelView.last().pose(), shadowProjMat);
+            accessor.invokeRenderLayer(RenderType.cutoutMipped(), cameraPos.x, cameraPos.y, cameraPos.z, shadowModelView.last().pose(), shadowProjMat);
+            accessor.invokeRenderLayer(RenderType.solid(), cameraPos.x, cameraPos.y, cameraPos.z, shadowModelView.last().pose(), shadowProjMat);
+//            accessor.invokeRenderLayer(RenderLayers.getPoolTileLayer(), cameraPos.x, cameraPos.y, cameraPos.z, shadowModelView.last().pose(), shadowProjMat);
 
             if(client.level != null) {
                 MultiBufferSource.BufferSource immediate = accessor.getBufferBuilders().bufferSource();
@@ -108,10 +108,10 @@ public class ShadowMapRenderer {
                 accessor.invokeSetupTerrain(camera, frustum, false, false);
             }
 
-            accessor.invokeRenderLayer(RenderType.cutout(), shadowModelView, cameraPos.x, cameraPos.y, cameraPos.z, shadowProjMat);
-            accessor.invokeRenderLayer(RenderType.cutoutMipped(), shadowModelView, cameraPos.x, cameraPos.y, cameraPos.z, shadowProjMat);
-            accessor.invokeRenderLayer(RenderType.solid(), shadowModelView, cameraPos.x, cameraPos.y, cameraPos.z, shadowProjMat);
-//            accessor.invokeRenderLayer(RenderLayers.getCarpet(), shadowModelView, cameraPos.x, cameraPos.y, cameraPos.z, shadowProjMat);
+            accessor.invokeRenderLayer(RenderType.cutout(), cameraPos.x, cameraPos.y, cameraPos.z, shadowModelView.last().pose(), shadowProjMat);
+            accessor.invokeRenderLayer(RenderType.cutoutMipped(), cameraPos.x, cameraPos.y, cameraPos.z, shadowModelView.last().pose(), shadowProjMat);
+            accessor.invokeRenderLayer(RenderType.solid(), cameraPos.x, cameraPos.y, cameraPos.z, shadowModelView.last().pose(), shadowProjMat);
+//            accessor.invokeRenderLayer(RenderLayers.getCarpet(), cameraPos.x, cameraPos.y, cameraPos.z, shadowModelView.last().pose(), shadowProjMat);
 
 
             GL11.glDisable(GL30.GL_CLIP_DISTANCE0);

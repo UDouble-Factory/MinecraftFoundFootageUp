@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class EntityRendererMixin<T extends Entity> {
 
     @Inject(method = "renderNameTag", at = @At("HEAD"), cancellable = true)
-    private void disablePlayerTags(T entity, Component text, PoseStack matrices, MultiBufferSource vertexConsumers, int light, CallbackInfo ci){
+    private void disablePlayerTags(T entity, Component component, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, float f, CallbackInfo ci){
         if(entity instanceof AbstractClientPlayer && BackroomsLevels.isInBackrooms(entity.level().dimension())) {
             ci.cancel();
         }

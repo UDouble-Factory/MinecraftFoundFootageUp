@@ -34,7 +34,7 @@ public class FinalFormAttackGoal extends MeleeAttackGoal {
                     this.path = this.mob.getNavigation().createPath(livingEntity, 0);
                     return this.path != null
                             ? true
-                            : this.getAttackReachSqr(livingEntity) >= this.mob.distanceToSqr(livingEntity.getX(), livingEntity.getY(), livingEntity.getZ());
+                            : this.mob.isWithinMeleeAttackRange(livingEntity);
                 }
             }
         }

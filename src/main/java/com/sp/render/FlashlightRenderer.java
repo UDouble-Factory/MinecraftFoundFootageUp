@@ -79,7 +79,7 @@ public class FlashlightRenderer {
                                         (float) Math.toRadians(player.getViewYRot(partialTicks)),
                                         0.0f
                                 );
-                                float alpha = client.player.isSpectator() ? 1.0f : 0.7f * client.getDeltaFrameTime();
+                                float alpha = client.player.isSpectator() ? 1.0f : 0.7f * client.getTimer().getRealtimeDeltaTicks();
                                 areaLights.getOrientation().slerp(currentRot, alpha);
                                 areaLights.getPosition().set(playerPos.x(), playerPos.y(), playerPos.z());
                                 handle.markDirty();

@@ -10,7 +10,6 @@ import de.maxhenkel.voicechat.api.VoicechatPlugin;
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import de.maxhenkel.voicechat.api.events.*;
 import de.maxhenkel.voicechat.api.opus.OpusDecoder;
-import de.maxhenkel.voicechat.voice.common.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntitySelector;
@@ -19,6 +18,9 @@ import org.lwjgl.openal.AL10;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static de.maxhenkel.voicechat.voice.common.AudioUtils.dbToPerc;
+import static de.maxhenkel.voicechat.voice.common.AudioUtils.getHighestAudioLevel;
 
 public class BackroomsVoicechatPlugin implements VoicechatPlugin {
     public static VoicechatServerApi voicechatApi;
@@ -136,7 +138,7 @@ public class BackroomsVoicechatPlugin implements VoicechatPlugin {
 
                     //If the player is talking too loud, make them visible to the skinwalker
                     if (!component.isVisibleToEntity()) {
-                        double volume = Utils.dbToPerc(Utils.getHighestAudioLevel(data));
+                        double volume = dbToPerc(getHighestAudioLevel(data));
 
                         if (volume >= 0.8) {
                             component.setTalkingTooLoud(true);

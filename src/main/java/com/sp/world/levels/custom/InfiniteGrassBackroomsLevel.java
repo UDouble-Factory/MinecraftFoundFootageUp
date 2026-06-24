@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
@@ -47,12 +48,14 @@ public class InfiniteGrassBackroomsLevel extends BackroomsLevel {
         BlockPos blockPos1 = new BlockPos(0, 64, 0);
         if (playerComponent.player instanceof ServerPlayer) {
             BlockPos blockPos = ((ServerPlayer) playerComponent.player).getRespawnPosition();
-            float f = ((ServerPlayer) playerComponent.player).getRespawnAngle();
-            boolean bl = ((ServerPlayer) playerComponent.player).isRespawnForced();
             ServerLevel serverWorld = playerComponent.player.level().getServer().getLevel(Level.OVERWORLD);
 
             if (serverWorld != null && blockPos != null) {
-                optional = Player.findRespawnPositionAndUseSpawnBlock(serverWorld, blockPos, f, bl, true);
+                ServerPlayer serverPlayer = (ServerPlayer) playerComponent.player;
+                DimensionTransition transition = serverPlayer.findRespawnPositionAndUseSpawnBlock(true, DimensionTransition.DO_NOTHING);
+                if (!transition.missingRespawnBlock()) {
+                    optional = Optional.of(transition.pos());
+                }
             }
 
             Level overworld = playerComponent.player.level().getServer().getLevel(Level.OVERWORLD);

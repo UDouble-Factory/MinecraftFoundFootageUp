@@ -35,7 +35,7 @@ public abstract class MinecraftClientMixin {
         return perspective;
     }
 
-    @Inject(method = "clearLevel(Lnet/minecraft/client/gui/screens/Screen;)V", at = @At("HEAD"))
+    @Inject(method = "disconnect(Lnet/minecraft/client/gui/screens/Screen;)V", at = @At("HEAD"))
     private void onDisconnect(Screen screen, CallbackInfo ci){
         if(!(screen instanceof ProgressScreen)) {
             ClientConnectionEvents.DISCONNECT.invoker().onLoginDisconnect((Minecraft) (Object) this);

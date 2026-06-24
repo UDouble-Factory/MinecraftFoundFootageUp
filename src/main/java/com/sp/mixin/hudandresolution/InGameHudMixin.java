@@ -5,10 +5,11 @@ import com.sp.compat.modmenu.ConfigStuff;
 import com.sp.util.TickTimer;
 import com.sp.util.Timer;
 import foundry.veil.api.client.util.Easing;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Final;
@@ -24,17 +25,13 @@ public class InGameHudMixin {
 
     @Shadow @Final private Minecraft minecraft;
 
-    @Shadow private int screenHeight;
-
-    @Shadow @Final private static ResourceLocation GUI_ICONS_LOCATION;
-
     @Unique Timer hotbarSlideTimer = new Timer(500, Easing.EASE_IN_CIRC, Easing.EASE_OUT_CIRC);
     @Unique TickTimer hotbarHoldTimer = new TickTimer();
     @Unique Integer prevSelectedSlot = 0;
     @Unique double hotbarPosition;
 
-    @Inject(method = {"renderHotbar"}, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", shift = At.Shift.AFTER))
-    private void hotbarSlide1(float tickDelta, GuiGraphics context, CallbackInfo ci){
+    @Inject(method = "renderItemHotbar", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", shift = At.Shift.AFTER))
+    private void hotbarSlide1(GuiGraphics context, DeltaTracker deltaTracker, CallbackInfo ci){
         if (SPBRevampedClient.shouldRenderCameraEffect()) {
             this.hotbarPosition = 45 * hotbarSlideTimer.getCurrentTime();
             if (!ConfigStuff.useDefaultGUI) {
@@ -60,15 +57,15 @@ public class InGameHudMixin {
         }
     }
 
-    @Inject(method = {"renderSlot"}, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V", ordinal = 1, shift = At.Shift.AFTER))
-    private void itemCountFix(GuiGraphics context, int x, int y, float f, Player player, ItemStack stack, int seed, CallbackInfo ci){
+    @Inject(method = "renderSlot", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V", ordinal = 1, shift = At.Shift.AFTER))
+    private void itemCountFix(GuiGraphics context, int x, int y, DeltaTracker deltaTracker, Player player, ItemStack stack, int seed, CallbackInfo ci){
         if (!ConfigStuff.useDefaultGUI) {
             context.pose().translate(0, this.hotbarPosition, 0);
         }
     }
 
-    @Inject(method = {"renderSlot"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;III)V"))
-    private void hotbarSlide2(GuiGraphics context, int x, int y, float f, Player player, ItemStack stack, int seed, CallbackInfo ci){
+    @Inject(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;III)V"))
+    private void hotbarSlide2(GuiGraphics context, int x, int y, DeltaTracker deltaTracker, Player player, ItemStack stack, int seed, CallbackInfo ci){
         if (SPBRevampedClient.shouldRenderCameraEffect()) {
             context.pose().pushPose();
 
@@ -78,14 +75,13 @@ public class InGameHudMixin {
         }
     }
 
-    @Inject(method = {"renderSlot"}, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;renderItemDecorations(Lnet/minecraft/client/gui/Font;Lnet/minecraft/world/item/ItemStack;II)V", shift = At.Shift.AFTER))
-    private void hotbarSlide3(GuiGraphics context, int x, int y, float f, Player player, ItemStack stack, int seed, CallbackInfo ci) {
+    @Inject(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;renderItemDecorations(Lnet/minecraft/client/gui/Font;Lnet/minecraft/world/item/ItemStack;II)V", shift = At.Shift.AFTER))
+    private void hotbarSlide3(GuiGraphics context, int x, int y, DeltaTracker deltaTracker, Player player, ItemStack stack, int seed, CallbackInfo ci) {
         if (SPBRevampedClient.shouldRenderCameraEffect()) {
             context.pose().popPose();
         }
     }
 
-    
 
 
     //RENDER HEALTH BAR
@@ -141,8 +137,17 @@ public class InGameHudMixin {
 
 
 
-    @Inject(method = {"renderExperienceBar", "renderCrosshair"}, at = @At("HEAD"), cancellable = true)
-    private void disable(CallbackInfo ci){
+    @Inject(method = "renderExperienceBar", at = @At("HEAD"), cancellable = true)
+    private void disableExperienceBar(GuiGraphics guiGraphics, int i, CallbackInfo ci){
+        if (SPBRevampedClient.shouldRenderCameraEffect()) {
+            if (!ConfigStuff.useDefaultGUI) {
+                ci.cancel();
+            }
+        }
+    }
+
+    @Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true)
+    private void disableCrosshair(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci){
         if (SPBRevampedClient.shouldRenderCameraEffect()) {
             if (!ConfigStuff.useDefaultGUI) {
                 ci.cancel();
@@ -151,7 +156,7 @@ public class InGameHudMixin {
     }
 
     @Inject(method = "renderVignette", at = @At("HEAD"), cancellable = true)
-    private void disableVignette(CallbackInfo ci){
+    private void disableVignette(GuiGraphics guiGraphics, Entity entity, CallbackInfo ci){
         if (SPBRevampedClient.shouldRenderCameraEffect()) {
             if (SPBRevampedClient.getCutsceneManager().isPlaying || SPBRevampedClient.getCutsceneManager().blackScreen.isBlackScreen) {
                 ci.cancel();

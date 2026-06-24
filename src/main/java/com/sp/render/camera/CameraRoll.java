@@ -18,7 +18,7 @@ public class CameraRoll {
     public static float doCameraRoll(Player player, float tickDelta){
         if (player != null) {
             float yaw = player.getViewYRot(tickDelta);
-            float lastFrameDuration = Minecraft.getInstance().getDeltaFrameTime();
+            float lastFrameDuration = Minecraft.getInstance().getTimer().getRealtimeDeltaTicks();
 
             //Yaw roll
             rotAmount += yaw - prevYaw;

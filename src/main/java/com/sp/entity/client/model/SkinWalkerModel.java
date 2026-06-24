@@ -7,6 +7,7 @@ import com.sp.entity.custom.SkinWalkerEntity;
 import com.sp.entity.ik.model.GeckoLib.GeoModelAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
@@ -17,7 +18,7 @@ public class SkinWalkerModel extends GeoModel<SkinWalkerEntity> {
 	private final ResourceLocation FINAL_MODEL = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "geo/entity/skin_walker_final_default.geo.json");
 
 	private final ResourceLocation PLACEHOLDER_TEXTURE = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "textures/entity/skinwalker/placeholder.png");
-	private final ResourceLocation STEVE_TEXTURE = new ResourceLocation("textures/entity/player/wide/steve.png");
+	private final ResourceLocation STEVE_TEXTURE = ResourceLocation.withDefaultNamespace("textures/entity/player/wide/steve.png");
 
 	private final ResourceLocation ANIMATION = ResourceLocation.fromNamespaceAndPath(SPBRevamped.MOD_ID, "animations/entity/skinwalker.animation.json");
 
@@ -40,7 +41,7 @@ public class SkinWalkerModel extends GeoModel<SkinWalkerEntity> {
 			if (client.level != null) {
 				AbstractClientPlayer player = (AbstractClientPlayer) client.level.getPlayerByUUID(component.getTargetPlayerUUID());
 				if (player != null) {
-					if (player.getModelName().equals("slim")) {
+					if (player.getSkin().model() == PlayerSkin.Model.SLIM) {
 						return SLIM_MODEL;
 					}
 				}
@@ -59,7 +60,7 @@ public class SkinWalkerModel extends GeoModel<SkinWalkerEntity> {
 		if(client.level != null){
 			AbstractClientPlayer player = (AbstractClientPlayer) client.level.getPlayerByUUID(component.getTargetPlayerUUID());
 			if(player != null) {
-				return player.getSkinTextureLocation();
+				return player.getSkin().texture();
 			}
 		}
 

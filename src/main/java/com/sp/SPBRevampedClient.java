@@ -13,6 +13,8 @@ import com.sp.entity.client.renderer.SkinWalkerRenderer;
 import com.sp.entity.client.renderer.SmilerRenderer;
 import com.sp.entity.client.renderer.WalkerRenderer;
 import com.sp.init.*;
+import com.sp.networking.C2S.SeeActiveSkinwalkerSyncPayload;
+import com.sp.networking.C2S.SyncServerComponentPayload;
 import com.sp.networking.InitializePackets;
 import com.sp.networking.callbacks.ClientConnectionEvents;
 import com.sp.render.*;
@@ -51,7 +53,6 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.client.Camera;
@@ -60,7 +61,6 @@ import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
@@ -195,13 +195,14 @@ public class SPBRevampedClient implements ClientModInitializer {
 
                 if (System.getProperty("os.name").toLowerCase().contains("mac")) {
                     SPBRevamped.LOGGER.error("This mod is not compatible with MacOS. Please use Windows or Linux (wayland).");
-                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.UNSECURE_SERVER_WARNING, Component.nullToEmpty("Potential Incompatibility found"), Component.nullToEmpty("This mod is not compatible with MacOS. Please use Windows or Linux (wayland).")));
+                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.UNSECURE_SERVER_WARNING, Component.nullToEmpty("Potential Incompatibility found"), Component.nullToEmpty("This mod is not compatible with MacOS. Please use Windows or Linux (wayland).")));
                 }
             }
         });
 
 
-        VeilEventPlatform.INSTANCE.onVeilRenderTypeStageRender((stage, levelRenderer, bufferSource, poseStack, projectionMatrix, renderTick, partialTicks, camera, frustum) -> {
+        VeilEventPlatform.INSTANCE.onVeilRenderLevelStage((stage, levelRenderer, bufferSource, matrixStack, frustumMatrix, projectionMatrix, renderTick, deltaTracker, camera, frustum) -> {
+            float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
             //*Setting for later use
             if(camera != null){
                 SPBRevampedClient.camera = camera;
@@ -246,8 +247,10 @@ public class SPBRevampedClient implements ClientModInitializer {
                             ShaderProgram shader = VeilRenderSystem.renderer().getShaderManager().getShader(BirdRenderer.computeShaderPath);
                             if (shader != null) {
                                 List<Vector3f> vector3fcs = FlockManager.getFlockCenters().stream().map((vec3d -> new Vector3f((float) vec3d.x, (float) vec3d.y, (float) vec3d.z))).toList();
-                                shader.setVectors("FlockCenters", vector3fcs.toArray(new Vector3fc[0]));
-                                shader.setInt("FlockAmount", ConfigStuff.birdQuality.getFlockCount());
+                                var flockUniform = shader.getUniform("FlockCenters");
+                                if (flockUniform != null) flockUniform.setFloats(toFloatArray(vector3fcs));
+                                var flockAmtUniform = shader.getUniform("FlockAmount");
+                                if (flockAmtUniform != null) flockAmtUniform.setInt(ConfigStuff.birdQuality.getFlockCount());
                                 this.birdRenderer.render();
                             }
                         }
@@ -305,24 +308,22 @@ public class SPBRevampedClient implements ClientModInitializer {
                                 if (!playerComponent.canSeeActiveSkinWalkerTarget()) {
                                     playerComponent.setCanSeeActiveSkinWalkerTarget(true);
 
-                                    FriendlyByteBuf buffer = PacketByteBufs.create();
-                                    buffer.writeBoolean(true);
-                                    ClientPlayNetworking.send(InitializePackets.SEE_SKINWALKER_SYNC, buffer);
+                                    ClientPlayNetworking.send(new SeeActiveSkinwalkerSyncPayload(true));
                                 }
                             } else {
                                 if (playerComponent.canSeeActiveSkinWalkerTarget()) {
                                     playerComponent.setCanSeeActiveSkinWalkerTarget(false);
 
-                                    FriendlyByteBuf buffer = PacketByteBufs.create();
-                                    buffer.writeBoolean(false);
-                                    ClientPlayNetworking.send(InitializePackets.SEE_SKINWALKER_SYNC, buffer);
+                                    ClientPlayNetworking.send(new SeeActiveSkinwalkerSyncPayload(false));
                                 }
                             }
                         }
                     }
 
                     if (!client.player.isSpectator() && !client.player.isCreative()) {
-                        client.options.renderDebug = false;
+                        if (client.getDebugOverlay().showDebugScreen()) {
+                            client.getDebugOverlay().toggleOverlay();
+                        }
                     }
 
                 }
@@ -348,74 +349,51 @@ public class SPBRevampedClient implements ClientModInitializer {
                 if (VHS_POST.equals(name)) {
                     ShaderProgram shaderProgram = context.getShader(POST_VHS);
                     if (shaderProgram != null) {
-                        if(youCantEscape) {
-                            shaderProgram.setInt("youCantEscape", 1);
-                        } else {
-                            shaderProgram.setInt("youCantEscape", 0);
-                        }
+                        setUniformInt(shaderProgram, "youCantEscape", youCantEscape ? 1 : 0);
 
                         if (playerComponent.isBeingCaptured()) {
                             SkinwalkerJumpscare.doJumpscare(shaderProgram, client, playerComponent);
                         } else {
-                            shaderProgram.setInt("Jumpscare", 0);
-                            shaderProgram.setInt("CreepyFace1", 0);
-                            shaderProgram.setInt("CreepyFace2", 0);
-                            shaderProgram.setVector("Rand", 0, 0);
+                            setUniformInt(shaderProgram, "Jumpscare", 0);
+                            setUniformInt(shaderProgram, "CreepyFace1", 0);
+                            setUniformInt(shaderProgram, "CreepyFace2", 0);
+                            setUniformVec2(shaderProgram, "Rand", 0f, 0f);
                         }
 
                         if (PreviousUniforms.prevModelViewMat != null && PreviousUniforms.prevProjMat != null) {
-                            shaderProgram.setMatrix("prevViewMat", PreviousUniforms.prevModelViewMat);
-                            shaderProgram.setMatrix("prevProjMat", PreviousUniforms.prevProjMat);
-                            shaderProgram.setVector("prevCameraPos", PreviousUniforms.prevCameraPos);
+                            setUniformMatrix(shaderProgram, "prevViewMat", PreviousUniforms.prevModelViewMat);
+                            setUniformMatrix(shaderProgram, "prevProjMat", PreviousUniforms.prevProjMat);
+                            setUniformVec3(shaderProgram, "prevCameraPos", PreviousUniforms.prevCameraPos);
                         }
 
-                        shaderProgram.setFloat("MotionBlurStrength", ConfigStuff.motionBlurStrength);
-                        shaderProgram.setFloat("DistortionStrength", ConfigStuff.VHSDistortionMultiplier);
+                        setUniformFloat(shaderProgram, "MotionBlurStrength", ConfigStuff.motionBlurStrength);
+                        setUniformFloat(shaderProgram, "DistortionStrength", ConfigStuff.VHSDistortionMultiplier);
                     }
 
                     shaderProgram = context.getShader(SSAO);
                     if (shaderProgram != null) {
-                        shaderProgram.setVectors("samples", SSAOSamples.getSSAOSamples());
+                        var samplesUniform = shaderProgram.getUniform("samples");
+                        if (samplesUniform != null) samplesUniform.setFloats(SSAOSamples.getSSAOSamplesFlat());
                     }
 
                     shaderProgram = context.getShader(EVERYTHING_SHADER);
                     if (shaderProgram != null) {
-                        if (client.level.dimension() == BackroomsLevels.LEVEL1_WORLD_KEY) {
-                            shaderProgram.setInt("FogToggle", 1);
-                        } else {
-                            shaderProgram.setInt("FogToggle", 0);
-                        }
-
-
-                        if(blackScreen || (player.isInWall() && !getCutsceneManager().isPlaying) || playerComponent.isBeingReleased()) {
-                            shaderProgram.setInt("blackScreen", 1);
-                        } else {
-                            shaderProgram.setInt("blackScreen", 0);
-                        }
-
-                        if (client.level.dimension() == BackroomsLevels.LEVEL1_WORLD_KEY) {
-                            shaderProgram.setInt("TogglePuddles", 1);
-                        } else {
-                            shaderProgram.setInt("TogglePuddles", 0);
-                        }
-
-
-                        shaderProgram.setVector("shadowColor", PoolroomsDayCycle.getLightColor());
+                        setUniformInt(shaderProgram, "FogToggle", client.level.dimension() == BackroomsLevels.LEVEL1_WORLD_KEY ? 1 : 0);
+                        setUniformInt(shaderProgram, "blackScreen", (blackScreen || (player.isInWall() && !getCutsceneManager().isPlaying) || playerComponent.isBeingReleased()) ? 1 : 0);
+                        setUniformInt(shaderProgram, "TogglePuddles", client.level.dimension() == BackroomsLevels.LEVEL1_WORLD_KEY ? 1 : 0);
+                        setUniformVec3(shaderProgram, "shadowColor", PoolroomsDayCycle.getLightColor());
                     }
 
                     shaderProgram = context.getShader(MIXED_SHADER);
                     if (shaderProgram != null) {
-                        shaderProgram.setVector("Rand", random.nextFloat() * 2.0f - 1.0f, random2.nextFloat() * 2.0f - 1.0f);
-
-                        shaderProgram.setVector("shadowColor", PoolroomsDayCycle.getLightColor());
-
-                        shaderProgram.setInt("isLightning", isLightning ? 1 : 0);
-
+                        setUniformVec2(shaderProgram, "Rand", random.nextFloat() * 2.0f - 1.0f, random2.nextFloat() * 2.0f - 1.0f);
+                        setUniformVec3(shaderProgram, "shadowColor", PoolroomsDayCycle.getLightColor());
+                        setUniformInt(shaderProgram, "isLightning", isLightning ? 1 : 0);
                     }
 
                     shaderProgram = context.getShader(GLITCH_SHADER);
                     if (shaderProgram != null) {
-                        shaderProgram.setFloat("glitchTime", playerComponent.getGlitchTimer());
+                        setUniformFloat(shaderProgram, "glitchTime", playerComponent.getGlitchTimer());
                     }
 
                 }
@@ -423,7 +401,7 @@ public class SPBRevampedClient implements ClientModInitializer {
                 BackroomsLevels.getLevel(client.level).ifPresent((backroomsLevel -> {
                     if (backroomsLevel instanceof Level2BackroomsLevel level) {
                         if (level.isWarping() || !finishedWarp(client.level)) {
-                            definitions.define("WARP");
+                            definitions.set("WARP");
                         } else {
                             definitions.remove("WARP");
                         }
@@ -432,7 +410,7 @@ public class SPBRevampedClient implements ClientModInitializer {
 
                 ConfigDefinitions.definitions.forEach((s, aBoolean) -> {
                     if(aBoolean.get()) {
-                        definitions.define(s);
+                        definitions.set(s);
                     } else {
                         definitions.remove(s);
                     }
@@ -440,7 +418,7 @@ public class SPBRevampedClient implements ClientModInitializer {
 
                 BackroomsLevels.definitions.forEach((s, registryKey) -> {
                     if (client.level.dimension() == registryKey) {
-                        definitions.define(s);
+                        definitions.set(s);
                     } else {
                         definitions.remove(s);
                     }
@@ -597,10 +575,7 @@ public class SPBRevampedClient implements ClientModInitializer {
     }
 
     public static void sendComponentSyncPacket(boolean writeBoolean, String component) {
-        FriendlyByteBuf buffer = PacketByteBufs.create();
-        buffer.writeBoolean(writeBoolean);
-        buffer.writeUtf(component);
-        ClientPlayNetworking.send(InitializePackets.COMPONENT_SYNC, buffer);
+        ClientPlayNetworking.send(new SyncServerComponentPayload(writeBoolean, component));
     }
 
     public static boolean isInBackrooms() {
@@ -633,5 +608,40 @@ public class SPBRevampedClient implements ClientModInitializer {
         }
 
         return BackroomsLevels.isInBackroomsLevel(Minecraft.getInstance().level, level);
+    }
+
+    private static void setUniformInt(ShaderProgram program, String name, int value) {
+        var uniform = program.getUniform(name);
+        if (uniform != null) uniform.setInt(value);
+    }
+
+    private static void setUniformFloat(ShaderProgram program, String name, float value) {
+        var uniform = program.getUniform(name);
+        if (uniform != null) uniform.setFloat(value);
+    }
+
+    private static void setUniformVec2(ShaderProgram program, String name, float x, float y) {
+        var uniform = program.getUniform(name);
+        if (uniform != null) uniform.setVector(x, y);
+    }
+
+    private static void setUniformVec3(ShaderProgram program, String name, Vector3f value) {
+        var uniform = program.getUniform(name);
+        if (uniform != null) uniform.setVector(value.x, value.y, value.z);
+    }
+
+    private static void setUniformMatrix(ShaderProgram program, String name, Matrix4f value) {
+        var uniform = program.getUniform(name);
+        if (uniform != null) uniform.setMatrix(value);
+    }
+
+    private static float[] toFloatArray(List<Vector3f> vectors) {
+        float[] result = new float[vectors.size() * 3];
+        for (int i = 0; i < vectors.size(); i++) {
+            result[i * 3] = vectors.get(i).x;
+            result[i * 3 + 1] = vectors.get(i).y;
+            result[i * 3 + 2] = vectors.get(i).z;
+        }
+        return result;
     }
 }

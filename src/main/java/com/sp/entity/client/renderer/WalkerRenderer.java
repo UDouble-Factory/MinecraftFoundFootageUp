@@ -13,8 +13,10 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.cache.object.GeoCube;
@@ -136,7 +138,7 @@ public class WalkerRenderer extends DynamicGeoEntityRenderer<WalkerEntity> {
 
             for (GeoCube cube : bone.getCubes()) {
                 poseStack.pushPose();
-                renderCube(poseStack, cube, vertexConsumer, 15728640, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                renderCube(poseStack, cube, vertexConsumer, 15728640, OverlayTexture.NO_OVERLAY, FastColor.ARGB32.color(255, 255, 255, 255));
                 poseStack.popPose();
             }
 

@@ -5,6 +5,7 @@ import com.sp.cca_stuff.PlayerComponent;
 import com.sp.init.ModSounds;
 import com.sp.util.ExtraUtils;
 import foundry.veil.api.client.render.shader.program.ShaderProgram;
+import foundry.veil.api.client.render.shader.uniform.ShaderUniform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundSource;
@@ -30,17 +31,17 @@ public class SkinwalkerJumpscare {
 
         ExtraUtils.stopAllOtherSounds(jumpScareSound.getLocation(), client.getSoundManager().soundEngine);
         client.options.hideGui = true;
-        program.setInt("Jumpscare", 1);
+        setUniformInt(program, "Jumpscare", 1);
 
         long currentTime = (System.currentTimeMillis() - startTime);
 
         if(currentTime >= 2000 && currentTime < 12000) {
-            program.setInt("CreepyFace1", 1);
+            setUniformInt(program, "CreepyFace1", 1);
         }
 
         if(currentTime >= 12000) {
-            program.setInt("CreepyFace2", 1);
-            program.setVector("Rand",  random.nextFloat(), random2.nextFloat());
+            setUniformInt(program, "CreepyFace2", 1);
+            setUniformVec2(program, "Rand", random.nextFloat(), random2.nextFloat());
         }
 
         if(currentTime >= 14000) {
@@ -51,12 +52,26 @@ public class SkinwalkerJumpscare {
 
             SPBRevampedClient.sendComponentSyncPacket(component.isBeingCaptured(), "beingCaptured");
 
-            program.setInt("Jumpscare", 0);
-            program.setInt("CreepyFace1", 0);
-            program.setInt("CreepyFace2", 0);
-            program.setVector("Rand", 0, 0);
+            setUniformInt(program, "Jumpscare", 0);
+            setUniformInt(program, "CreepyFace1", 0);
+            setUniformInt(program, "CreepyFace2", 0);
+            setUniformVec2(program, "Rand", 0.0f, 0.0f);
         }
 
+    }
+
+    private static void setUniformInt(ShaderProgram program, String name, int value) {
+        ShaderUniform uniform = program.getUniform(name);
+        if (uniform != null) {
+            uniform.setInt(value);
+        }
+    }
+
+    private static void setUniformVec2(ShaderProgram program, String name, float x, float y) {
+        ShaderUniform uniform = program.getUniform(name);
+        if (uniform != null) {
+            uniform.setVector(x, y);
+        }
     }
 
 }

@@ -31,8 +31,8 @@ public class SmilerModel<T extends SmilerEntity> extends HierarchicalModel<T> {
 
 
 	@Override
-	public void renderToBuffer(PoseStack matrices, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha) {
-		bone.render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);
+	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int i, int j, int k) {
+		bone.render(poseStack, vertexConsumer, i, j, k);
 	}
 
 	@Override

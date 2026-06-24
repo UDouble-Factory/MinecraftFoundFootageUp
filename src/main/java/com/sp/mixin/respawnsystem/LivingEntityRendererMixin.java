@@ -6,6 +6,7 @@ import com.sp.cca_stuff.PlayerComponent;
 import com.sp.util.Timer;
 import foundry.veil.api.client.render.VeilRenderSystem;
 import foundry.veil.api.client.render.shader.program.ShaderProgram;
+import foundry.veil.api.client.render.shader.uniform.ShaderUniform;
 import foundry.veil.api.client.util.Easing;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -33,7 +34,7 @@ public abstract class LivingEntityRendererMixin <T extends LivingEntity, M exten
 
     @Shadow protected abstract void scale(T entity, PoseStack matrices, float amount);
     @Unique ShaderProgram shader;
-    @Unique ResourceLocation SHADER_LOCATION = new ResourceLocation("spbrevamped", "warp_player");
+    @Unique ResourceLocation SHADER_LOCATION = ResourceLocation.fromNamespaceAndPath("spbrevamped", "warp_player");
 
     protected LivingEntityRendererMixin(EntityRendererProvider.Context ctx) {
         super(ctx);
@@ -55,28 +56,34 @@ public abstract class LivingEntityRendererMixin <T extends LivingEntity, M exten
                     this.staticTimer.startTimer();
                 }
 
-                if(this.staticTimer.isDone()){
-                    this.staticTimer = null;
-                    shader.setFloat("StaticTimer", 2.0f);
-                } else {
-                    shader.setFloat("StaticTimer", this.staticTimer.getCurrentTime());
+                ShaderUniform staticTimerUniform = shader.getUniform("StaticTimer");
+                if (staticTimerUniform != null) {
+                    if(this.staticTimer.isDone()){
+                        this.staticTimer = null;
+                        staticTimerUniform.setFloat(2.0f);
+                    } else {
+                        staticTimerUniform.setFloat(this.staticTimer.getCurrentTime());
+                    }
                 }
 
             } else {
-                shader.setFloat("StaticTimer", 2.0f);
+                ShaderUniform staticTimerUniform = shader.getUniform("StaticTimer");
+                if (staticTimerUniform != null) {
+                    staticTimerUniform.setFloat(2.0f);
+                }
             }
 
         }
     }
 
-    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V", shift = At.Shift.BEFORE))
+    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V", shift = At.Shift.BEFORE))
     private void bind(T livingEntity, float f, float g, PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, CallbackInfo ci){
         if (livingEntity instanceof AbstractClientPlayer){
             shader.bind();
         }
     }
 
-    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V", shift = At.Shift.AFTER))
+    @Inject(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V", shift = At.Shift.AFTER))
     private void unbind(T livingEntity, float f, float g, PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, CallbackInfo ci){
         if(livingEntity instanceof AbstractClientPlayer){
             ShaderProgram.unbind();
