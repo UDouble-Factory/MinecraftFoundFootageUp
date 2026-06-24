@@ -3,6 +3,7 @@ package com.sp.cca_stuff;
 import com.sp.SPBRevamped;
 import com.sp.entity.custom.SkinWalkerEntity;
 import com.sp.entity.custom.SmilerEntity;
+import net.minecraft.resources.ResourceLocation;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.entity.EntityComponentFactoryRegistry;
@@ -10,7 +11,6 @@ import org.ladysnake.cca.api.v3.entity.EntityComponentInitializer;
 import org.ladysnake.cca.api.v3.entity.RespawnCopyStrategy;
 import org.ladysnake.cca.api.v3.world.WorldComponentFactoryRegistry;
 import org.ladysnake.cca.api.v3.world.WorldComponentInitializer;
-import net.minecraft.resources.ResourceLocation;
 
 public class InitializeComponents implements EntityComponentInitializer, WorldComponentInitializer {
     public static final ComponentKey<PlayerComponent> PLAYER = ComponentRegistry.getOrCreate(ResourceLocation.tryBuild(SPBRevamped.MOD_ID, "player"), PlayerComponent.class);

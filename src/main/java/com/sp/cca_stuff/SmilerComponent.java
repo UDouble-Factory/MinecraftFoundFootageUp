@@ -2,9 +2,9 @@ package com.sp.cca_stuff;
 
 import com.sp.entity.custom.SmilerEntity;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
-import net.minecraft.nbt.CompoundTag;
 
 public class SmilerComponent implements AutoSyncedComponent, ClientTickingComponent {
     private final SmilerEntity smiler;

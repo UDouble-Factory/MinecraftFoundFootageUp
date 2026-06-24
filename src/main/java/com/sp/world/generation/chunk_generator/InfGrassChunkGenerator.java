@@ -36,7 +36,6 @@ import org.joml.SimplexNoise;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 public final class InfGrassChunkGenerator extends BackroomsChunkGenerator {
     public static final MapCodec<InfGrassChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(

@@ -6,8 +6,8 @@ import com.sp.entity.ik.components.IKAnimatable;
 import com.sp.entity.ik.util.PrAnCommonClass;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.animatable.GeoAnimatable;
+import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.renderer.GeoRenderer;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 

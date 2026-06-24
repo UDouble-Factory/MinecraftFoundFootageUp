@@ -6,7 +6,6 @@ import com.sp.cca_stuff.PlayerComponent;
 import com.sp.compat.modmenu.ConfigStuff;
 import com.sp.init.BackroomsLevels;
 import com.sp.init.ModSounds;
-import com.sp.util.MathStuff;
 import foundry.veil.api.client.util.Easing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;

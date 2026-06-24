@@ -3,7 +3,6 @@ package com.sp.block.entity;
 import com.sp.clientWrapper.ClientWrapper;
 import com.sp.init.ModBlockEntities;
 import com.sp.sounds.EmergencyAlarmSoundInstance;
-import foundry.veil.api.client.render.VeilRenderSystem;
 import foundry.veil.api.client.render.light.data.AreaLightData;
 import foundry.veil.api.client.render.light.data.PointLightData;
 import foundry.veil.api.client.render.light.renderer.LightRenderHandle;

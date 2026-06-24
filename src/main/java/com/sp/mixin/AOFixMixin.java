@@ -1,6 +1,5 @@
 package com.sp.mixin;
 
-import foundry.veil.api.client.render.VeilRenderSystem;
 import net.fabricmc.fabric.impl.client.indigo.Indigo;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.core.BlockPos;
@@ -15,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.Arrays;
 import java.util.BitSet;
 
 
