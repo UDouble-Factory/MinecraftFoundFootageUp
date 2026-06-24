@@ -86,7 +86,7 @@ dependencies {
 		exclude group: "maven.modrinth"
 		exclude group: "me.fallenbreath"
 	}
-	include ("foundry.veil:Veil-fabric-${project.minecraft_version}:${project.veil_version}") {
+	include ("foundry.veil:veil-fabric-${project.minecraft_version}:${project.veil_version}") {
 		transitive = false
 	}
 
