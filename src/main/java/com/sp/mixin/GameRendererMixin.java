@@ -24,13 +24,16 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 @Mixin(value = GameRenderer.class)
 public abstract class GameRendererMixin {
@@ -120,29 +123,40 @@ public abstract class GameRendererMixin {
 
     /// Dearest Chaos, Becasue I can -SpacePotato
 
-    /**
-     * @author
-     * @reason
-     */
-    @Overwrite
-    private void bobView(PoseStack matrices, float tickDelta){
-        if (this.minecraft.getCameraEntity() instanceof Player) {
-            Player playerEntity = (Player)this.minecraft.getCameraEntity();
-            float f = playerEntity.walkDist - playerEntity.walkDistO;
-            float g = -(playerEntity.walkDist + f * tickDelta);
-            float h = Mth.lerp(tickDelta, playerEntity.oBob, playerEntity.bob);
+    /// Don't worry guys, I fixed them -Mr.W
 
-            Vector3f cameraBob = new Vector3f(Mth.sin(g * (float) Math.PI) * h * 0.5F, -Math.abs(Mth.cos(g * (float) Math.PI) * h), 0.0F);
-            matrices.translate(cameraBob.x, cameraBob.y, cameraBob.z);
-            SPBRevampedClient.cameraBobOffset = new Vector3f(cameraBob);
+    @ModifyArgs(
+            method = "bobView",
+            at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V")
+    )
+    private void spb$captureBobOffset(Args args) {
+        float x = args.get(0);
+        float y = args.get(1);
+        float z = args.get(2);
+        SPBRevampedClient.cameraBobOffset = new Vector3f(x, y, z);
+    }
 
-            matrices.mulPose(Axis.ZP.rotationDegrees(Mth.sin(g * (float) Math.PI) * h * 3.0F));
-            float multiplier = 5.0f;
-            if (ConfigStuff.enableRealCamera) {
-                multiplier = 10.0f;
-            }
-            matrices.mulPose(Axis.XP.rotationDegrees(Math.abs(Mth.cos(g * (float) Math.PI - 0.2F) * h) * multiplier));
+    @Redirect(
+            method = "bobView",
+            at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionf;)V", ordinal = 1)
+    )
+    private void spb$modifyXRotation(PoseStack poseStack, Quaternionf original) {
+        if (ConfigStuff.enableRealCamera) {
+            Player player = (Player) this.minecraft.getCameraEntity();
+            float f = player.walkDist - player.walkDistO;
+            float g = -(player.walkDist + f * spb$lastBobTickDelta);
+            float h = Mth.lerp(spb$lastBobTickDelta, player.oBob, player.bob);
+            poseStack.mulPose(Axis.XP.rotationDegrees(Math.abs(Mth.cos(g * (float) Math.PI - 0.2F) * h) * 10.0F));
+        } else {
+            poseStack.mulPose(original);
         }
+    }
+
+    @Unique private float spb$lastBobTickDelta;
+
+    @Inject(method = "bobView", at = @At("HEAD"))
+    private void spb$captureBobTickDelta(PoseStack poseStack, float tickDelta, CallbackInfo ci) {
+        this.spb$lastBobTickDelta = tickDelta;
     }
 
 
