@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.ProgressScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -45,7 +46,8 @@ public abstract class MinecraftClientMixin {
     @Inject(method = "run", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;runTick(Z)V", shift = At.Shift.AFTER))
     private void enableDeferredResourcePack(CallbackInfo ci){
         if (instance != null && resourcePackRepository != null) {
-            if(!resourcePackRepository.getSelectedPacks().contains(resourcePackRepository.getPack("veil:deferred"))) {
+            Pack deferredPack = resourcePackRepository.getPack("veil:deferred");
+            if(deferredPack != null && !resourcePackRepository.getSelectedPacks().contains(deferredPack)) {
                 SPBRevamped.LOGGER.info("Re-enabled Deferred Resourcepack");
                 resourcePackRepository.addPack("veil:deferred");
                 options.updateResourcePacks(resourcePackRepository);
